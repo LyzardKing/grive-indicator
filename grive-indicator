@@ -101,17 +101,18 @@ class GriveIndicator:
     def infoGrive(self):
         time = self.getValue('time')
         self.infoGrive_item.set_label("Grive sync every {} min".format(time))
-        self.lastSync_item.set_label('Last sync at ' + self.lastSync)
+        # self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
     def refresh(self):
         self.syncNow(None)
-        self.infoGrive
+        self.infoGrive()
         GLib.timeout_add(216000*int(self.getValue('time')), self.refresh)
 
     def syncNow(self, _):
         self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
         subprocess.run(['killall', 'grive'])
         subprocess.Popen(['grive'], cwd=self.getValue('folder'))
+        self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
     def getValue(self, key):
         with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
