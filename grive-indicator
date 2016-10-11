@@ -34,8 +34,7 @@ class GriveIndicator:
         self.menu_setup()
         self.ind.set_menu(self.menu)
 
-        self.syncNow(None)
-        self.infoGrive()
+        self.refresh()
 
     def menu_setup(self):
         self.menu = Gtk.Menu()
@@ -106,7 +105,7 @@ class GriveIndicator:
     def refresh(self):
         self.syncNow(None)
         self.infoGrive()
-        GLib.timeout_add(216000*int(self.getValue('time')), self.refresh)
+        GLib.timeout_add_seconds(60*int(self.getValue('time')), self.refresh)
 
     def syncNow(self, _):
         self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
