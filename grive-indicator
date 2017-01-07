@@ -8,8 +8,10 @@ from gi.repository import AppIndicator3
 from gi.repository import GLib
 from pathlib import Path
 from datetime import datetime
+from multiprocessing import Process
 import os
 import subprocess
+import inotify
 import sys
 import json
 import re
@@ -27,7 +29,7 @@ class GriveIndicator:
             data = {"style": "dark", "time": 5, "folder": "{}/Documents/Grive".format(os.environ['HOME'])}
             with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
                 json.dump(data, json_data)
-        self.ind = AppIndicator3.Indicator.new("Grive Indicator", os.path.join(GRIVEI_PATH, self.getIcon()),
+        self.ind = AppIndicator3.Indicator.new("Grive Indicator", self.getIcon(),
                                               AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
         self.ind.set_attention_icon("indicator-messages-new")
@@ -49,6 +51,10 @@ class GriveIndicator:
 
         self.setInterval_item = Gtk.MenuItem("Change sync interval")
         self.setInterval_item.connect("activate", self.setInterval)
+        self.setInterval_item.show()
+        
+        self.setInterval_item = Gtk.CheckMenuItem("Auto Sync")
+        self.setInterval_item.connect("activate", self.enableInotifywait)
         self.setInterval_item.show()
 
         self.syncNow_item = Gtk.MenuItem("Sync now")
@@ -100,17 +106,26 @@ class GriveIndicator:
     def infoGrive(self):
         time = self.getValue('time')
         self.infoGrive_item.set_label("Grive sync every {} min".format(time))
-        # self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
+    # TODO: change with inotify?
     def refresh(self):
         self.syncNow(None)
         self.infoGrive()
         GLib.timeout_add_seconds(60*int(self.getValue('time')), self.refresh)
+        
+    def enableInotifywait(self):
+		p = Process(target=notifyProcess, args=None)
+		p.start()
+		
+	def notifyProcess():
+		i = inotify.adapters.InotifyTree(self.getValue('folder').encode())
+		for event in i.event_gen():
+			self.syncNow(None)
 
     def syncNow(self, _):
         self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
-        subprocess.run(['killall', 'grive'])
-        subprocess.Popen(['grive'], cwd=self.getValue('folder'))
+        #subprocess.run(['killall', 'grive'])
+        #subprocess.Popen(['grive'], cwd=self.getValue('folder'))
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
     def getValue(self, key):
@@ -135,6 +150,7 @@ class GriveIndicator:
         self.setValue("style", "light")
         self.ind.set_icon_full(os.path.join(GRIVEI_PATH, self.getIcon()), "grive-indicator-light")
 
+    # TODO: remove zenity and set full preferences page
     def setInterval(self, _):
         out = subprocess.check_output(['zenity', '--scale', '--title="Grive sync interval"',
                                       '--min-value=1', '--max-value=180', '--value=1', '--step=1']).decode().strip()
@@ -148,12 +164,14 @@ class GriveIndicator:
     def openLocal(self, _):
         subprocess.Popen(["xdg-open", self.getValue('folder')])
 
+    # Build path for known icons, else return string
+    # Use to set custom icons
     def getIcon(self):
         style = self.getValue('style')
-        if style == "dark":
-            return "drive-dark.png"
+        if style == 'light' or style == 'dark':
+            return os.path.join(GRIVEI_PATH, 'drive-' + style + '.png')
         else:
-            return "drive-light.png"
+            return style
 
     def Quit(self, _):
         subprocess.run(['killall', 'grive-sync'])
