@@ -35,6 +35,8 @@ class GriveIndicator:
         parser.add_argument('--folder', '-f', action='store')
         parser.add_argument('--selective', '-s', action='store')
         args = parser.parse_args()
+        folder = args.folder
+        selective = args.selective
 
         if not shutil.which('grive'):
             print('Missing grive executable in PATH')
@@ -45,12 +47,17 @@ class GriveIndicator:
                 if data["style"] is None or data["time"] is None:
                     raise FileNotFoundError
         except:
-            if not args.folder:
+            if not folder:
                 logging.error("Folder needed. Usage: grive-indicator --folder <folder>")
-                exit(1)
-            selective = args.selective if (args.selective is not None) else ''
+                selective = subprocess.check_output(['zenity', '--forms',
+                                                  '--text="Configuration file missing. Add the remote folder to sync(leave blank to sync all)"',
+                                                  '--add-entry="Remote Folder (selective sync)"'])
+
+                selective = selective.decode().strip()
+                folder = subprocess.check_output(['zenity', '--title="Local Folder"', '--file-selection', '--directory'])
+                folder = folder.decode().strip()
             data = {"style": "dark", "time": 30,
-                    "folder": args.folder,
+                    "folder": folder,
                     "selective": selective}
             with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
                 json.dump(data, json_data)
