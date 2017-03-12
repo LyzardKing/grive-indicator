@@ -5,6 +5,8 @@ Indicator applet for Ubuntu to synchronize Google Drive
 =======
 A very simple and lightweight indicator applet to synchronize with Google Drive using grive.
 
+Works with "selective sync". You can specify one folder to sync (only one). That is permanent and cannot be changed.
+
 Prerequisites
 ===============
 
@@ -25,3 +27,4 @@ ToDo
 
 1. Add sync based on inotifywait (e.g. using a command like: inotifywait -r -e modify,attrib,moved_to,moved_from,move_self,create,delete,delete_self "$HOME/Google Drive")
 2. Create a simple GUI for "grive" settings.
+3. Fix selective settings.
