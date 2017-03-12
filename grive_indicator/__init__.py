@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import json
+import site
 import re
 import threading
 import logging
@@ -154,7 +155,10 @@ class GriveIndicator:
                 with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
                                        'grive-indicator.desktop'), 'r') as f:
                     txt = f.read()
-                    txt = re.sub(r"GRIVEI_PATH", GRIVEI_PATH, txt)
+                    if os.path.dirname(GRIVEI_PATH) in site.getsitepackages():
+                        txt = re.sub(r"GRIVEI_PATH/", '', txt)
+                    else:
+                        txt = re.sub(r"GRIVEI_PATH/", '{}/'.format(os.path.join(os.path.dirname(GRIVEI_PATH), 'bin')), txt)
                 with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
                                        'grive-indicator.desktop'), 'w') as f:
                     f.write(txt)
