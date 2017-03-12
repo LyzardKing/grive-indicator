@@ -11,6 +11,7 @@ import site
 import re
 import threading
 import logging
+from time import sleep
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
@@ -22,8 +23,10 @@ from pathlib import Path
 from datetime import datetime
 from multiprocessing import Process
 from subprocess import CalledProcessError
+from contextlib import suppress
 
 GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
+LOCK = False
 
 logging.basicConfig(format="%(levelname)s: %(message)s")
 
@@ -46,22 +49,28 @@ class GriveIndicator:
                 data = json.load(json_data)
                 if data["style"] is None or data["time"] is None:
                     raise FileNotFoundError
-        except:
+        except FileNotFoundError:
             if not folder:
                 logging.error("Folder needed. Usage: grive-indicator --folder <folder>")
                 selective = subprocess.check_output(['zenity', '--forms',
                                                   '--text="Configuration file missing. Add the remote folder to sync(leave blank to sync all)"',
                                                   '--add-entry="Remote Folder (selective sync)"'])
-
                 selective = selective.decode().strip()
                 folder = subprocess.check_output(['zenity', '--title="Local Folder"', '--file-selection', '--directory'])
                 folder = folder.decode().strip()
+                if not os.path.isfile(os.path.join(folder, '.grive')):
+                    result = subprocess.check_output(['zenity', '--question',
+                                                      '--text="The folder is not currently registered with grive. Do you want to proceed?"'])
+                    if result == b'':
+                        # Authenticate with Google Drive
+                        self.runAuth(folder)
             data = {"style": "dark", "time": 30,
                     "folder": folder,
                     "selective": selective}
             with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
                 json.dump(data, json_data)
-        self.autostart_file = os.path.join(os.path.expanduser('~'), '.config', 'autostart', 'grive-indicator.desktop')
+
+        self.autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
         self.ind = AppIndicator3.Indicator.new("Grive Indicator", self.getIcon(),
                                                AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
@@ -69,9 +78,11 @@ class GriveIndicator:
         self.menu_setup()
         self.ind.set_menu(self.menu)
 
-        thread = threading.Thread(target=self.refresh)
-        thread.daemon = True
-        thread.start()
+        while not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator')) and\
+              not os.path.isfile(folder, '.grive') and\
+              not LOCK:
+            sleep(3)
+        self.syncDaemon()
 
     def menu_setup(self):
         self.menu = Gtk.Menu()
@@ -172,6 +183,33 @@ class GriveIndicator:
         else:
             if os.path.exists(self.autostart_file):
                 os.remove(self.autostart_file)
+
+    def runAuth(self, folder):
+        LOCK = True
+        thread = threading.Thread(target=self._runAuth, args=[folder])
+        thread.start()
+        self.lastSync_item.set_label('Initial Sync...')
+        while not os.path.isfile(os.path.join(folder, '.grive')):
+            sleep(3)
+        LOCK = False
+
+    def _runAuth(self, folder):
+        txt = ''
+        auth = subprocess.Popen(['grive', '-a'], shell=False, cwd=folder, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        for line in iter(auth.stdout.readline, ''):
+            txt += line.decode()
+            if 'Please input the authentication code' in txt:
+                break
+        url = re.search('https.*googleusercontent.com', txt).group(0)
+        subprocess.Popen(['xdg-open', url])
+        result = subprocess.check_output(['zenity', '--forms', '--add-entry="Auth Code"'])
+        auth.stdin.write(result)
+        auth.stdin.flush()
+
+    def syncDaemon(self):
+        thread = threading.Thread(target=self.refresh)
+        thread.daemon = True
+        thread.start()
 
     def syncNow(self, _):
         self.lastSync_item.set_label('Syncing...')
