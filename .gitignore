@@ -1,0 +1,9 @@
+# Python compiled files
+__pycache__/
+*.py[cod]
+
+# builds
+build/
+*.egg-info
+*.pybuild
+build/*
