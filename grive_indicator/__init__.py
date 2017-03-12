@@ -42,7 +42,10 @@ class GriveIndicator:
         selective = args.selective
 
         if not shutil.which('grive'):
-            print('Missing grive executable in PATH')
+            print('Missing grive executable in PATH.')
+            exit(1)
+        if not shutil.which('zenity'):
+            print('Missing zenity executable in PATH.')
             exit(1)
         try:
             with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
