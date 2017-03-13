@@ -2,11 +2,11 @@
 
 import os
 import sys
-from grive_indicator import main
-
 # Run local umake from this helper
 root_dir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, root_dir)
+
+from grive_indicator import main
 
 if __name__ == '__main__':
     main()
