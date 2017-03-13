@@ -176,7 +176,7 @@ class GriveIndicator:
         try:
             subprocess.check_call(['grive'], cwd=folder)
         except CalledProcessError as e:
-            output = subprocess.check_output(['zenity', '--error', '--text="You need to Authenticate with Grive"'])
+            output = subprocess.check_output(['zenity', '--error', '--text="Oops...Something went wrong"'])
             if output == b'':
                 exit(1)
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)

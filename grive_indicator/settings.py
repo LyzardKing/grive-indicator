@@ -23,7 +23,7 @@ class Handler:
         enableStartup(startup.get_active())
 
 def setInterval(value):
-    if value:
+    if value is not None and value != getValue('time'):
         setValue("time", value)
 
 def enableStartup(is_active):
@@ -61,5 +61,7 @@ def main():
     builder.connect_signals(Handler())
 
     window = builder.get_object("settings_dialog")
+    timer_entry = builder.get_object("sync_interval")
+    timer_entry.set_text(str(getValue('time')))
     window.show_all()
     Gtk.main()
