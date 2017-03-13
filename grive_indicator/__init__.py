@@ -24,12 +24,10 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 from grive_indicator import settings
-from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
+from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind, runConfigure
 
 
 LOCK = False
-
-logging.basicConfig(format="%(levelname)s: %(message)s")
 
 
 class GriveIndicator:
@@ -49,36 +47,13 @@ class GriveIndicator:
             print('Missing zenity executable in PATH.')
             exit(1)
         try:
-            with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
+            with open(os.path.join(os.environ['HOME'], '.grive-indicator'), 'r') as json_data:
                 data = json.load(json_data)
                 if data["style"] is None or data["time"] is None:
                     raise FileNotFoundError
         except FileNotFoundError:
-            if not folder:
-                logging.error("Folder needed. Usage: grive-indicator --folder <folder>")
-                selective = subprocess.check_output(['zenity', '--forms',
-                                                     '--text="Configuration file missing.'
-                                                     'Add the remote folder to sync(leave blank to sync all)"',
-                                                     '--add-entry="Remote Folder (selective sync)"'])
-                selective = selective.decode().strip()
-                folder = subprocess.check_output(['zenity',
-                                                  '--title="Local Folder"',
-                                                  '--file-selection',
-                                                  '--directory'])
-                folder = folder.decode().strip()
-                if not os.path.isfile(os.path.join(folder, '.grive')):
-                    result = subprocess.check_output(['zenity',
-                                                      '--question',
-                                                      '--text="The  is not currently registered with grive.'
-                                                      'Do you want to proceed?"'])
-                    if result == b'':
-                        # Authenticate with Google Drive
-                        self.runAuth(folder)
-            data = {"style": "dark", "time": 30,
-                    "folder": folder,
-                    "selective": selective}
-            with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
-                json.dump(data, json_data)
+            self.lastSync_item.set_label('Initial Sync...')
+            runConfigure(folder)
 
         self.menu_setup()
         ind.set_menu(self.menu)
@@ -138,28 +113,6 @@ class GriveIndicator:
         p = Process(target=notifyProcess, args=None)
         p.start()
 
-    def runAuth(self, folder):
-        LOCK = True
-        thread = threading.Thread(target=self._runAuth, args=[folder])
-        thread.start()
-        self.lastSync_item.set_label('Initial Sync...')
-        while not os.path.isfile(os.path.join(folder, '.grive')):
-            sleep(3)
-        LOCK = False
-
-    def _runAuth(self, folder):
-        txt = ''
-        auth = subprocess.Popen(['grive', '-a'], shell=False, cwd=folder, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        for line in iter(auth.stdout.readline, ''):
-            txt += line.decode()
-            if 'Please input the authentication code' in txt:
-                break
-        url = re.search('https.*googleusercontent.com', txt).group(0)
-        subprocess.Popen(['xdg-open', url])
-        result = subprocess.check_output(['zenity', '--forms', '--add-entry="Auth Code"'])
-        auth.stdin.write(result)
-        auth.stdin.flush()
-
     def syncDaemon(self):
         thread = threading.Thread(target=self.refresh)
         thread.daemon = True
@@ -168,19 +121,25 @@ class GriveIndicator:
     def syncNow(self, _):
         self.lastSync_item.set_label('Syncing...')
         folder = getValue('folder')
+        grive_cmd = ['grive', '--dry-run']
         if not os.path.isfile(os.path.join(folder, '.grive')):
             # Run grive for the first time
             # On sequent runs grive remembers the selective setting.
             # TODO: How to change the selective settings
             selective = getValue('selective')
             if selective != '':
-                grive_cmd = ['grive', '--dir "{}"'.format(selective)]
-            else:
-                grive_cmd = ['grive']
+                grive_cmd.append('--dir "{}"'.format(selective))
         self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
         subprocess.run(['killall', 'grive'])
+        upload_speed = getValue('upload_speed')
+        if upload_speed != '':
+            grive_cmd.append('--upload-speed {}'.format(upload_speed))
+        download_speed = getValue('download_speed')
+        if download_speed != '':
+            grive_cmd.append('--download-speed {}'.format(download_speed))
         try:
-            subprocess.check_call(['grive'], cwd=folder)
+            logger.debug('Running: {}')
+            subprocess.check_call(grive_cmd, cwd=folder)
         except CalledProcessError as e:
             output = subprocess.check_output(['zenity', '--error', '--text="Oops...Something went wrong"'])
             if output == b'':
@@ -194,7 +153,7 @@ class GriveIndicator:
         subprocess.Popen(["xdg-open", getValue('folder')])
 
     def settings(self, _):
-        settings.main()
+        settings.main(self)
 
     def Quit(self, _):
         subprocess.run(['killall', 'grive-sync'])

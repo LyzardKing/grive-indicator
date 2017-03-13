@@ -7,6 +7,7 @@ import shutil
 import site
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+from contextlib import suppress
 import json
 import subprocess
 from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH, autostart_file
@@ -14,7 +15,7 @@ from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH,
 
 class DialogWindow(Gtk.Window):
 
-    def __init__(self):
+    def __init__(self, parent):
         Gtk.Window.__init__(self, title="Dialog Example")
 
         self.set_border_width(6)
@@ -36,12 +37,33 @@ class DialogWindow(Gtk.Window):
         startup_swith.set_active(os.path.isfile(autostart_file))
         startup_swith.connect('notify::active', self.on_startup_active)
 
+        label_up_speed = Gtk.Label("Limit Upload Speed")
+        upload_speed = Gtk.Entry()
+        tmp = str(getValue('upload_speed'))
+        upload_speed.set_text(tmp if tmp is not None else '')
+
+        label_down_speed = Gtk.Label("Limit Download Speed")
+        download_speed = Gtk.Entry()
+        tmp = str(getValue('download_speed'))
+        download_speed.set_text(tmp if tmp is not None else '')
+
+        confirm_button = Gtk.Button('Ok')
+        confirm_button.connect('clicked',
+                               self.confirmSettings,
+                               timer_entry.get_text(),
+                               upload_speed.get_text(),
+                               download_speed.get_text())
+
         grid.add(label_timer)
         grid.attach(timer_entry, 1, 0, 2, 1)
         grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
         grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
         grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
         grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(label_up_speed, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
@@ -52,9 +74,23 @@ class DialogWindow(Gtk.Window):
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
 
-    def confirmSettings(self, data=None):
-        setInterval(int(data.get_text()))
-        dialog.destroy()
+    def confirmSettings(self, timer=None, upload_speed=None, download_speed=None):
+        setInterval(int(timer))
+        with suppress(ValueError):
+            setUploadSpeed(int(upload_speed))
+        with suppress(ValueError):
+            setDownloadSpeed(int(download_speed))
+        self.destroy()
+
+
+def setDownloadSpeed(value):
+    if value is not None and value != getValue('download_speed'):
+        setValue('download_speed', value)
+
+
+def setUploadSpeed(value):
+    if value is not None and value != getValue('upload_speed'):
+        setValue('upload_speed', value)
 
 
 def setInterval(value):
@@ -94,6 +130,6 @@ def setLightTheme():
     ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", getIcon()), "grive-indicator-light")
 
 
-def main():
-    window = DialogWindow()
+def main(parent):
+    window = DialogWindow(parent)
     window.show_all()
