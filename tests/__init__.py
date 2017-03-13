@@ -14,7 +14,7 @@ class CodeCheck(unittest.TestCase):
 
         Note that we have a .pep8 config file for maximum line length tweak
         and excluding the virtualenv dir."""
-        config_folder = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+        config_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         pep8style = pep8.StyleGuide(config_file=os.path.join(config_folder, '.pep8'))
 
         # we want to use either local or system umake, but always local tests files
