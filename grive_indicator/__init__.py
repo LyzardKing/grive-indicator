@@ -11,6 +11,8 @@ import site
 import re
 import threading
 import logging
+from grive_indicator import settings
+from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
 from time import sleep
 
 gi.require_version('Gtk', '3.0')
@@ -25,7 +27,6 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 
-GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
 LOCK = False
 
 logging.basicConfig(format="%(levelname)s: %(message)s")
@@ -73,13 +74,8 @@ class GriveIndicator:
             with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
                 json.dump(data, json_data)
 
-        self.autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
-        self.ind = AppIndicator3.Indicator.new("Grive Indicator", self.getIcon(),
-                                               AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
-        self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-        self.ind.set_attention_icon("indicator-messages-new")
         self.menu_setup()
-        self.ind.set_menu(self.menu)
+        ind.set_menu(self.menu)
 
         while not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator')) and\
               not os.path.isfile(folder, '.grive') and\
@@ -90,22 +86,9 @@ class GriveIndicator:
     def menu_setup(self):
         self.menu = Gtk.Menu()
 
-        self.infoGrive_item = Gtk.MenuItem("Starting Grive")
-        self.infoGrive_item.set_sensitive(False)
-        self.infoGrive_item.show()
-
         self.lastSync_item = Gtk.MenuItem('Not Available')
         self.lastSync_item.set_sensitive(False)
         self.lastSync_item.show()
-
-        self.setInterval_item = Gtk.MenuItem("Change sync interval")
-        self.setInterval_item.connect("activate", self.setInterval)
-        self.setInterval_item.show()
-
-        self.onStartup_item = Gtk.CheckMenuItem('Enable on Startup')
-        self.onStartup_item.set_active(os.path.isfile(self.autostart_file))
-        self.onStartup_item.connect("activate", self.enableStartup)
-        self.onStartup_item.show()
 
         self.syncNow_item = Gtk.MenuItem("Sync now")
         self.syncNow_item.connect("activate", self.syncNow)
@@ -122,16 +105,9 @@ class GriveIndicator:
         self.Local_item.connect("activate", self.openLocal)
         self.Local_item.show()
 
-        self.seperator2_item = Gtk.SeparatorMenuItem()
-        self.seperator2_item.show()
-
-        self.DarkTheme_item = Gtk.MenuItem("Use dark theme icon")
-        self.DarkTheme_item.connect("activate", self.setDarkTheme)
-        self.DarkTheme_item.show()
-
-        self.LightTheme_item = Gtk.MenuItem("Use light theme icon")
-        self.LightTheme_item.connect("activate", self.setLightTheme)
-        self.LightTheme_item.show()
+        self.Local_item = Gtk.MenuItem("Open Settings")
+        self.Local_item.connect("activate", self.settings)
+        self.Local_item.show()
 
         self.seperator3_item = Gtk.SeparatorMenuItem()
         self.seperator3_item.show()
@@ -140,52 +116,21 @@ class GriveIndicator:
         self.Quit_item.connect("activate", self.Quit)
         self.Quit_item.show()
 
-        self.menu.append(self.infoGrive_item)
         self.menu.append(self.lastSync_item)
-        self.menu.append(self.setInterval_item)
         self.menu.append(self.syncNow_item)
         self.menu.append(self.seperator1_item)
         self.menu.append(self.Remote_item)
         self.menu.append(self.Local_item)
-        self.menu.append(self.seperator2_item)
-        self.menu.append(self.DarkTheme_item)
-        self.menu.append(self.LightTheme_item)
-        self.menu.append(self.onStartup_item)
         self.menu.append(self.seperator3_item)
         self.menu.append(self.Quit_item)
 
-    def infoGrive(self):
-        time = self.getValue('time')
-        self.infoGrive_item.set_label("Grive sync every {} min".format(time))
-
     def refresh(self):
         self.syncNow(None)
-        self.infoGrive()
-        GLib.timeout_add_seconds(60 * int(self.getValue('time')), self.refresh)
+        GLib.timeout_add_seconds(60 * int(getValue('time')), self.refresh)
 
     def enableInotifywait(self):
         p = Process(target=notifyProcess, args=None)
         p.start()
-
-    def enableStartup(self, _):
-        if self.onStartup_item.get_active():
-            if not os.path.isfile(self.autostart_file):
-                shutil.copyfile(src=os.path.join(GRIVEI_PATH, "data", 'grive-indicator.desktop'),
-                                dst=os.path.join(os.path.expanduser('~'), '.config',
-                                                 'autostart', 'grive-indicator.desktop'))
-                with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
-                                       'grive-indicator.desktop'), 'r') as f:
-                    txt = f.read()
-                    if os.path.dirname(GRIVEI_PATH) in site.getsitepackages():
-                        txt = re.sub(r"GRIVEI_PATH/", '', txt)
-                    else:
-                        txt = re.sub(r"GRIVEI_PATH/", '{}/'.format(os.path.join(os.path.dirname(GRIVEI_PATH), 'bin')), txt)
-                with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
-                                       'grive-indicator.desktop'), 'w') as f:
-                    f.write(txt)
-        else:
-            if os.path.exists(self.autostart_file):
-                os.remove(self.autostart_file)
 
     def runAuth(self, folder):
         LOCK = True
@@ -216,12 +161,12 @@ class GriveIndicator:
 
     def syncNow(self, _):
         self.lastSync_item.set_label('Syncing...')
-        folder = self.getValue('folder')
+        folder = getValue('folder')
         if not os.path.isfile(os.path.join(folder, '.grive')):
             # Run grive for the first time
             # On sequent runs grive remembers the selective setting.
             # TODO: How to change the selective settings
-            selective = self.getValue('selective')
+            selective = getValue('selective')
             if selective != '':
                 grive_cmd = ['grive', '--dir "{}"'.format(selective)]
             else:
@@ -236,50 +181,14 @@ class GriveIndicator:
                 exit(1)
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
-    def getValue(self, key):
-        with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
-            data = json.load(json_data)
-        return data[key]
-
-    def setValue(self, key, value):
-        with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
-            data = json.load(json_data)
-        with open("{}/.grive-indicator".format(os.environ['HOME']), 'w') as json_data:
-            data[key] = value
-            json.dump(data, json_data)
-        subprocess.Popen(['notify-send', '{} set to {}.'.format(key.capitalize(), value),
-                          '--icon={}/drive-dark.png'.format(os.path.abspath(os.path.join(GRIVEI_PATH, "data")))])
-
-    def setDarkTheme(self, _):
-        self.setValue("style", "dark")
-        self.ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", self.getIcon()), "grive-indicator-dark")
-
-    def setLightTheme(self, _):
-        self.setValue("style", "light")
-        self.ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", self.getIcon()), "grive-indicator-light")
-
-    # TODO: remove zenity and set full preferences page
-    def setInterval(self, _):
-        out = subprocess.check_output(['zenity', '--scale', '--title="Grive sync interval"',
-                                      '--min-value=1', '--max-value=180', '--value=1', '--step=1']).decode().strip()
-        if out:
-            self.setValue("time", out)
-            self.infoGrive()
-
     def openRemote(self, _):
         subprocess.Popen(["xdg-open", "https://drive.google.com/"])
 
     def openLocal(self, _):
-        subprocess.Popen(["xdg-open", self.getValue('folder')])
+        subprocess.Popen(["xdg-open", getValue('folder')])
 
-    # Build path for known icons, else return string
-    # Use to set custom icons
-    def getIcon(self):
-        style = self.getValue('style')
-        if style == 'light' or style == 'dark':
-            return os.path.join(GRIVEI_PATH, "data", 'drive-' + style + '.png')
-        else:
-            return style
+    def settings(self, _):
+        settings.main()
 
     def Quit(self, _):
         subprocess.run(['killall', 'grive-sync'])
@@ -289,7 +198,6 @@ class GriveIndicator:
         Gtk.main()
 
 
-#if __name__ == "__main__":
 def main():
     indicator = GriveIndicator()
     indicator.main()
