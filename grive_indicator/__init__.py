@@ -11,10 +11,7 @@ import site
 import re
 import threading
 import logging
-from grive_indicator import settings
-from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
 from time import sleep
-
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
@@ -26,6 +23,9 @@ from datetime import datetime
 from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
+from grive_indicator import settings
+from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
+
 
 LOCK = False
 
@@ -57,14 +57,20 @@ class GriveIndicator:
             if not folder:
                 logging.error("Folder needed. Usage: grive-indicator --folder <folder>")
                 selective = subprocess.check_output(['zenity', '--forms',
-                                                  '--text="Configuration file missing. Add the remote folder to sync(leave blank to sync all)"',
-                                                  '--add-entry="Remote Folder (selective sync)"'])
+                                                     '--text="Configuration file missing.'
+                                                     'Add the remote folder to sync(leave blank to sync all)"',
+                                                     '--add-entry="Remote Folder (selective sync)"'])
                 selective = selective.decode().strip()
-                folder = subprocess.check_output(['zenity', '--title="Local Folder"', '--file-selection', '--directory'])
+                folder = subprocess.check_output(['zenity',
+                                                  '--title="Local Folder"',
+                                                  '--file-selection',
+                                                  '--directory'])
                 folder = folder.decode().strip()
                 if not os.path.isfile(os.path.join(folder, '.grive')):
-                    result = subprocess.check_output(['zenity', '--question',
-                                                      '--text="The folder is not currently registered with grive. Do you want to proceed?"'])
+                    result = subprocess.check_output(['zenity',
+                                                      '--question',
+                                                      '--text="The  is not currently registered with grive.'
+                                                      'Do you want to proceed?"'])
                     if result == b'':
                         # Authenticate with Google Drive
                         self.runAuth(folder)
@@ -77,9 +83,9 @@ class GriveIndicator:
         self.menu_setup()
         ind.set_menu(self.menu)
 
-        while not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator')) and\
-              not os.path.isfile(folder, '.grive') and\
-              not LOCK:
+        while (not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator'))) and\
+              (not os.path.isfile(folder, '.grive')) and\
+              (not LOCK):
             sleep(3)
         self.syncDaemon()
 

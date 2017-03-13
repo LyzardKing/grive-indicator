@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import gi
 import re
@@ -46,6 +48,7 @@ class DialogWindow(Gtk.Window):
             setDarkTheme()
         else:
             setLightTheme()
+
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
 
@@ -53,9 +56,11 @@ class DialogWindow(Gtk.Window):
         setInterval(int(data.get_text()))
         dialog.destroy()
 
+
 def setInterval(value):
     if value is not None and value != getValue('time'):
         setValue("time", value)
+
 
 def enableStartup(is_active):
     if is_active:
@@ -78,13 +83,16 @@ def enableStartup(is_active):
         if os.path.exists(autostart_file):
             os.remove(autostart_file)
 
+
 def setDarkTheme():
     setValue("style", "dark")
     ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", getIcon()), "grive-indicator-dark")
 
+
 def setLightTheme():
     setValue("style", "light")
     ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", getIcon()), "grive-indicator-light")
+
 
 def main():
     window = DialogWindow()
