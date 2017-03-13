@@ -9,18 +9,49 @@ import json
 import subprocess
 from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH, autostart_file
 
-class Handler:
-    def onDeleteWindow(self, *args):
-        Gtk.main_quit(*args)
-    def confirmSettings(self, data=None):
-        setInterval(int(data.get_text()))
-    def on_dark_theme_activate(self, dark_theme, gparam):
-        if dark_theme.get_active():
+
+class DialogWindow(Gtk.Window):
+
+    def __init__(self):
+        Gtk.Window.__init__(self, title="Dialog Example")
+
+        self.set_border_width(6)
+
+        grid = Gtk.Grid()
+        self.add(grid)
+
+        label_timer = Gtk.Label("Sync timer")
+        timer_entry = Gtk.Entry()
+        timer_entry.set_text(str(getValue('time')))
+
+        label_theme = Gtk.Label("Dark Theme")
+        theme_swith = Gtk.Switch()
+        theme_swith.set_active(True)
+        theme_swith.connect('notify::active', self.on_dark_theme_activate)
+
+        label_startup = Gtk.Label("Enable  on Startup")
+        startup_swith = Gtk.Switch()
+        startup_swith.set_active(os.path.isfile(autostart_file))
+        startup_swith.connect('notify::active', self.on_startup_active)
+
+        grid.add(label_timer)
+        grid.attach(timer_entry, 1, 0, 2, 1)
+        grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
+
+    def on_dark_theme_activate(self, switch, gparam):
+        if switch.get_active():
             setDarkTheme()
         else:
             setLightTheme()
-    def on_startup_active(self, startup, gparam):
-        enableStartup(startup.get_active())
+    def on_startup_active(self, switch, gparam):
+        enableStartup(switch.get_active())
+
+    def confirmSettings(self, data=None):
+        setInterval(int(data.get_text()))
+        dialog.destroy()
 
 def setInterval(value):
     if value is not None and value != getValue('time'):
@@ -56,12 +87,5 @@ def setLightTheme():
     ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", getIcon()), "grive-indicator-light")
 
 def main():
-    builder = Gtk.Builder()
-    builder.add_from_file("resources/settings.glade")
-    builder.connect_signals(Handler())
-
-    window = builder.get_object("settings_dialog")
-    timer_entry = builder.get_object("sync_interval")
-    timer_entry.set_text(str(getValue('time')))
+    window = DialogWindow()
     window.show_all()
-    Gtk.main()
