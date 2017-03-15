@@ -13,10 +13,10 @@ import subprocess
 from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH, autostart_file
 
 
-class DialogWindow(Gtk.Window):
+class SettingsWindow(Gtk.Window):
 
-    def __init__(self, parent):
-        Gtk.Window.__init__(self, title="Dialog Example")
+    def __init__(self):
+        Gtk.Window.__init__(self, title="Settings")
 
         self.set_border_width(6)
 
@@ -64,6 +64,7 @@ class DialogWindow(Gtk.Window):
         grid.attach_next_to(upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         grid.attach_next_to(download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(download_speed, confirm_button, Gtk.PositionType.BOTTOM, 1, 1)
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
@@ -130,6 +131,6 @@ def setLightTheme():
     ind.set_icon_full(os.path.join(GRIVEI_PATH, "data", getIcon()), "grive-indicator-light")
 
 
-def main(parent):
-    window = DialogWindow(parent)
+def main():
+    window = SettingsWindow()
     window.show_all()

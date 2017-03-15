@@ -9,13 +9,23 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import json
 import subprocess
-from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH, autostart_file
+import logging
+from grive_indicator.tools import runConfigure
+from grive_indicator import UI
 
 
-class DialogWindow(Gtk.Window):
+logger = logging.getLogger(__name__)
+
+
+class ConfigureWindow(Gtk.Window):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="Dialog Example")
+        Gtk.Window.__init__(self, title="Configure")
+
+        hb = Gtk.HeaderBar()
+        hb.set_show_close_button(False)
+        hb.props.title = "HeaderBar example"
+        self.set_titlebar(hb)
 
         self.set_border_width(6)
 
@@ -23,23 +33,38 @@ class DialogWindow(Gtk.Window):
         self.add(grid)
 
         label_folder = Gtk.Label("Local Folder")
-        folder_chooser = Gtk.FileChooser()
+        self.folder_chooser = Gtk.FileChooserButton(action=Gtk.FileChooserAction.SELECT_FOLDER)
 
         label_selective = Gtk.Label("Remote Folder (leave blank for all)")
-        remote_folder = Gtk.Entry()
+        self.remote_folder = Gtk.Entry()
+
+        confirm_button = Gtk.Button('Ok')
+        confirm_button.connect('clicked',
+                               self.confirmSettings)
+
+        escape_button = Gtk.Button('Cancel')
+        escape_button.connect('clicked',
+                               self.cancel)
 
         grid.add(label_folder)
-        grid.attach(folder_chooser, 1, 0, 2, 1)
+        grid.attach(self.folder_chooser, 1, 0, 2, 1)
         grid.attach_next_to(label_selective, label_folder, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(remote_folder, label_selective, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(self.remote_folder, label_selective, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(confirm_button, self.remote_folder, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(escape_button, confirm_button, Gtk.PositionType.RIGHT, 2, 1)
 
-    def confirmSettings(self, data=None):
-        setInterval(int(data.get_text()))
-        setUploadSpeed(int(data.get_text()))
-        setDownloadSpeed(int(data.get_text()))
-        dialog.destroy()
+    def confirmSettings(self, widget):
+        folder_chooser = self.folder_chooser.get_filename()
+        remote_folder = self.remote_folder.get_text()
+        runConfigure(folder_chooser, remote_folder)
+        UI.main(self, "Restart grive-indicator to start auto sync")
+        self.destroy()
+    
+    def cancel(self, widget):
+        Gtk.main_quit()
 
 
 def main():
-    window = DialogWindow()
+    window = ConfigureWindow()
+    window.connect("delete-event", Gtk.main_quit)
     window.show_all()

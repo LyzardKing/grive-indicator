@@ -11,34 +11,37 @@ gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import AppIndicator3
+import grive_indicator
+from time import sleep
 
 GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
+LOCK = False
 
 
-def runConfigure(folder=None):
-    if not folder:
-        logger.error("Folder needed. Usage: grive-indicator --folder <folder>")
-        selective = subprocess.check_output(['zenity', '--forms',
-                                             '--text="Configuration file missing.'
-                                             'Add the remote folder to sync(leave blank to sync all)"',
-                                             '--add-entry="Remote Folder (selective sync)"'])
-        selective = selective.decode().strip()
-        folder = subprocess.check_output(['zenity',
-                                          '--title="Local Folder"',
-                                          '--file-selection',
-                                          '--directory'])
-        folder = folder.decode().strip()
-        if not os.path.isfile(os.path.join(folder, '.grive')):
-            result = subprocess.check_output(['zenity',
-                                              '--question',
-                                              '--text="The  is not currently registered with grive.'
-                                              'Do you want to proceed?"'])
-            if result == b'':
-                # Authenticate with Google Drive
-                self.runAuth(folder)
+def runConfigure(folder, selective=None):
+    if not selective:
+        selective = ''
+    _runConfigure(folder, selective)
+    if not os.path.isfile(os.path.join(folder, '.grive')):
+        result = subprocess.check_output(['zenity',
+                                          '--question',
+                                          '--text="The  is not currently registered with grive.'
+                                          'Do you want to proceed?"'])
+        if result == b'':
+            LOCK = True
+            # Authenticate with Google Drive
+            self.runAuth(folder)
+    # grive_indicator.restart()
+        # while LOCK is True and\
+        #     not os.path.isfile(os.path.join(os.environ['home'], '.grive-indicator')):
+        #     sleep(2)
+    
+
+def _runConfigure(folder, selective=''):
+    logger.debug('Saving configurations: folder:%s selective:%s' % (folder, selective))
     data = {"style": "dark", "time": 30,
             "folder": folder,
             "selective": selective,
@@ -72,13 +75,9 @@ def _runAuth(self, folder):
 
 
 def getValue(key):
-    try:
-        with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
-            data = json.load(json_data)
-        return data[key]
-    except FileNotFoundError:
-        runConfigure()
-        return getValue(key)
+    with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
+        data = json.load(json_data)
+    return data[key]
 
 
 def setValue(key, value):
@@ -92,7 +91,10 @@ def setValue(key, value):
 
 
 def getIcon():
-    style = getValue('style')
+    try:
+        style = getValue('style')
+    except:
+        style = 'dark'
     if style == 'light' or style == 'dark':
         return os.path.join(GRIVEI_PATH, "data", 'drive-' + style + '.png')
     else:

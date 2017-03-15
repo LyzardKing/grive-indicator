@@ -24,10 +24,12 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 from grive_indicator import settings
-from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind, runConfigure
+from grive_indicator import configure
+from grive_indicator import UI
+from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
 
 
-LOCK = False
+logger = logging.getLogger(__name__)
 
 
 class GriveIndicator:
@@ -46,23 +48,19 @@ class GriveIndicator:
         if not shutil.which('zenity'):
             print('Missing zenity executable in PATH.')
             exit(1)
-        try:
-            with open(os.path.join(os.environ['HOME'], '.grive-indicator'), 'r') as json_data:
-                data = json.load(json_data)
-                if data["style"] is None or data["time"] is None:
-                    raise FileNotFoundError
-        except FileNotFoundError:
-            self.lastSync_item.set_label('Initial Sync...')
-            runConfigure(folder)
 
         self.menu_setup()
         ind.set_menu(self.menu)
 
-        while (not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator'))) and\
-              (not os.path.isfile(folder, '.grive')) and\
-              (not LOCK):
-            sleep(3)
-        self.syncDaemon()
+        if not os.path.exists(os.path.join(os.environ['HOME'], '.grive-indicator')):
+            # self.lastSync_item.set_label('Initial Sync...')
+            configure.main()
+        else:
+            self.syncDaemon()
+
+        # while not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator')):
+        #     sleep(3)
+        # self.syncDaemon()
 
     def menu_setup(self):
         self.menu = Gtk.Menu()
@@ -138,7 +136,7 @@ class GriveIndicator:
         if download_speed != '':
             grive_cmd.append('--download-speed {}'.format(download_speed))
         try:
-            logger.debug('Running: {}')
+            logger.debug('Running: {}'.format(grive_cmd))
             subprocess.check_call(grive_cmd, cwd=folder)
         except CalledProcessError as e:
             output = subprocess.check_output(['zenity', '--error', '--text="Oops...Something went wrong"'])
@@ -153,7 +151,7 @@ class GriveIndicator:
         subprocess.Popen(["xdg-open", getValue('folder')])
 
     def settings(self, _):
-        settings.main(self)
+        settings.main()
 
     def Quit(self, _):
         subprocess.run(['killall', 'grive-sync'])
@@ -161,6 +159,10 @@ class GriveIndicator:
 
     def main(self):
         Gtk.main()
+
+def restart():
+    UI.main('Restart grive-indicator.')
+    # subprocess.Popen(['zenity', '--warning', '--text="Restart grive-indicator."'])
 
 
 def main():
