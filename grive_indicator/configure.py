@@ -44,7 +44,7 @@ class ConfigureWindow(Gtk.Window):
 
         escape_button = Gtk.Button('Cancel')
         escape_button.connect('clicked',
-                               self.cancel)
+                              self.cancel)
 
         grid.add(label_folder)
         grid.attach(self.folder_chooser, 1, 0, 2, 1)
@@ -57,9 +57,10 @@ class ConfigureWindow(Gtk.Window):
         folder_chooser = self.folder_chooser.get_filename()
         remote_folder = self.remote_folder.get_text()
         runConfigure(folder_chooser, remote_folder)
-        UI.main(self, "Restart grive-indicator to start auto sync")
-        self.destroy()
-    
+        response = UI.InfoDialog.main(self, "Restart grive-indicator to start auto sync")
+        if response == Gtk.ResponseType.OK:
+            Gtk.main_quit()
+
     def cancel(self, widget):
         Gtk.main_quit()
 

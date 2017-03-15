@@ -11,8 +11,11 @@ gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import AppIndicator3
-import grive_indicator
+from grive_indicator import UI
 from time import sleep
+import threading
+import re
+
 
 GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
@@ -26,19 +29,14 @@ def runConfigure(folder, selective=None):
         selective = ''
     _runConfigure(folder, selective)
     if not os.path.isfile(os.path.join(folder, '.grive')):
-        result = subprocess.check_output(['zenity',
-                                          '--question',
-                                          '--text="The  is not currently registered with grive.'
-                                          'Do you want to proceed?"'])
-        if result == b'':
+        response = UI.InfoDialog.main(parent=None,
+                                      label='The  is not currently registered with grive. Do you want to proceed?')
+        if response == Gtk.ResponseType.OK:
+            logger.debug('Confirm auth')
             LOCK = True
             # Authenticate with Google Drive
-            self.runAuth(folder)
-    # grive_indicator.restart()
-        # while LOCK is True and\
-        #     not os.path.isfile(os.path.join(os.environ['home'], '.grive-indicator')):
-        #     sleep(2)
-    
+            runAuth(folder)
+
 
 def _runConfigure(folder, selective=''):
     logger.debug('Saving configurations: folder:%s selective:%s' % (folder, selective))
@@ -51,27 +49,29 @@ def _runConfigure(folder, selective=''):
         json.dump(data, json_data)
 
 
-def runAuth(self, folder):
+def runAuth(folder):
     LOCK = True
-    thread = threading.Thread(target=_runAuth, args=[folder])
-    thread.start()
-    while not os.path.isfile(os.path.join(folder, '.grive')):
-        sleep(3)
-    LOCK = False
+    _runAuth(folder)
 
 
-def _runAuth(self, folder):
+def _runAuth(folder):
     txt = ''
-    auth = subprocess.Popen(['grive', '-a'], shell=False, cwd=folder, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    auth = subprocess.Popen(['grive', '-a', '--dry-run'],
+                            shell=False,
+                            cwd=folder,
+                            stdout=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
     for line in iter(auth.stdout.readline, ''):
         txt += line.decode()
         if 'Please input the authentication code' in txt:
             break
     url = re.search('https.*googleusercontent.com', txt).group(0)
     subprocess.Popen(['xdg-open', url])
-    result = subprocess.check_output(['zenity', '--forms', '--add-entry="Auth Code"'])
-    auth.stdin.write(result)
+    response = UI.EntryDialog.main(parent=None, label='Insert the Auth Code')
+    logger.debug(response)
+    auth.stdin.write(response.encode())
     auth.stdin.flush()
+    LOCK = False
 
 
 def getValue(key):

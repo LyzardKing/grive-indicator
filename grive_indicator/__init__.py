@@ -45,9 +45,6 @@ class GriveIndicator:
         if not shutil.which('grive'):
             print('Missing grive executable in PATH.')
             exit(1)
-        if not shutil.which('zenity'):
-            print('Missing zenity executable in PATH.')
-            exit(1)
 
         self.menu_setup()
         ind.set_menu(self.menu)
@@ -139,8 +136,10 @@ class GriveIndicator:
             logger.debug('Running: {}'.format(grive_cmd))
             subprocess.check_call(grive_cmd, cwd=folder)
         except CalledProcessError as e:
-            output = subprocess.check_output(['zenity', '--error', '--text="Oops...Something went wrong"'])
-            if output == b'':
+            response = UI.InfoDialog.main(parent=None, label='Something went terribly wrong.')
+            if response == Gtk.ResponseType.OK:
+                logger.error('Error occurred running grive')
+                Gtk.main_quit()
                 exit(1)
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
@@ -159,10 +158,6 @@ class GriveIndicator:
 
     def main(self):
         Gtk.main()
-
-def restart():
-    UI.main('Restart grive-indicator.')
-    # subprocess.Popen(['zenity', '--warning', '--text="Restart grive-indicator."'])
 
 
 def main():

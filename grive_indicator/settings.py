@@ -9,8 +9,11 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from contextlib import suppress
 import json
+import logging
 import subprocess
 from grive_indicator.tools import getIcon, setValue, getValue, ind, GRIVEI_PATH, autostart_file
+
+logger = logging.getLogger(__name__)
 
 
 class SettingsWindow(Gtk.Window):
@@ -24,8 +27,8 @@ class SettingsWindow(Gtk.Window):
         self.add(grid)
 
         label_timer = Gtk.Label("Sync timer")
-        timer_entry = Gtk.Entry()
-        timer_entry.set_text(str(getValue('time')))
+        self.timer_entry = Gtk.Entry()
+        self.timer_entry.set_text(str(getValue('time')))
 
         label_theme = Gtk.Label("Dark Theme")
         theme_swith = Gtk.Switch()
@@ -38,33 +41,30 @@ class SettingsWindow(Gtk.Window):
         startup_swith.connect('notify::active', self.on_startup_active)
 
         label_up_speed = Gtk.Label("Limit Upload Speed")
-        upload_speed = Gtk.Entry()
+        self.upload_speed = Gtk.Entry()
         tmp = str(getValue('upload_speed'))
-        upload_speed.set_text(tmp if tmp is not None else '')
+        self.upload_speed.set_text(tmp if tmp is not None else '')
 
         label_down_speed = Gtk.Label("Limit Download Speed")
-        download_speed = Gtk.Entry()
+        self.download_speed = Gtk.Entry()
         tmp = str(getValue('download_speed'))
-        download_speed.set_text(tmp if tmp is not None else '')
+        self.download_speed.set_text(tmp if tmp is not None else '')
 
         confirm_button = Gtk.Button('Ok')
         confirm_button.connect('clicked',
-                               self.confirmSettings,
-                               timer_entry.get_text(),
-                               upload_speed.get_text(),
-                               download_speed.get_text())
+                               self.confirmSettings)
 
         grid.add(label_timer)
-        grid.attach(timer_entry, 1, 0, 2, 1)
+        grid.attach(self.timer_entry, 1, 0, 2, 1)
         grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
         grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
         grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
         grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
         grid.attach_next_to(label_up_speed, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(download_speed, confirm_button, Gtk.PositionType.BOTTOM, 1, 1)
+        grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
+        grid.attach_next_to(confirm_button, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
@@ -75,12 +75,16 @@ class SettingsWindow(Gtk.Window):
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
 
-    def confirmSettings(self, timer=None, upload_speed=None, download_speed=None):
-        setInterval(int(timer))
+    def confirmSettings(self, widget):
+        logger.debug('Set timer, up, down to %s, %s, %s' % (self.timer_entry.get_text(),
+                                                            self.upload_speed.get_text(),
+                                                            self.download_speed.get_text()))
         with suppress(ValueError):
-            setUploadSpeed(int(upload_speed))
+            setInterval(self.timer_entry.get_text())
         with suppress(ValueError):
-            setDownloadSpeed(int(download_speed))
+            setUploadSpeed(self.upload_speed.get_text())
+        with suppress(ValueError):
+            setDownloadSpeed(self.download_speed.get_text())
         self.destroy()
 
 

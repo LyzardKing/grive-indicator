@@ -10,7 +10,7 @@ Works with "selective sync". You can specify one folder to sync (only one). That
 Prerequisites
 ===============
 
-1. Install "grive", "python-appindicator" and "zenity";
+1. Install "grive", "python-appindicator"
 2. If using for the first time, have "grive" authenticated with your chosen Google account by (creating and) changing directory (cd) to "~/Google Drive" and then entering the terminal command "grive -a" in that directory.
 
 Installation
