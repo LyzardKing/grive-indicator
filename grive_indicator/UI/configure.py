@@ -12,7 +12,7 @@ import json
 import subprocess
 import logging
 from grive_indicator.tools import runConfigure
-from grive_indicator import UI
+from grive_indicator.UI import InfoDialog
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class ConfigureWindow(Gtk.Window):
         folder_chooser = self.folder_chooser.get_filename()
         remote_folder = self.remote_folder.get_text()
         runConfigure(folder_chooser, remote_folder)
-        response = UI.InfoDialog.main(self, "Restart grive-indicator to start auto sync")
+        response = InfoDialog.main(self, "Restart grive-indicator to start auto sync")
         if response == Gtk.ResponseType.OK:
             Gtk.main_quit()
 

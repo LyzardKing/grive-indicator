@@ -5,26 +5,33 @@ import os
 import nose
 import logging
 import unittest
-from tests import CodeCheck
+import re
 
 logger = logging.getLogger(__name__)
 root_dir = os.path.abspath(os.path.dirname(__file__))
 TESTS_DIR = os.path.join(root_dir, 'tests')
+
+def list_tests():
+    tests = '[pep8]'
+    testLoader = unittest.TestLoader()
+    loader = testLoader.discover(TESTS_DIR, pattern='test_*.py')
+    for testsuite in loader:
+        for test in testsuite:
+            for item in test.__iter__():
+                test_label = re.search("\((.*)\)", str(item)).group(1)
+                tests += ' ' + test_label
+    return tests
 
 def run_test(args):
     tests = []
     loader = unittest.TestLoader()
     if len(args.tests) > 0:
         for test in args.tests:
-            if test in ('pass', 'pep8'):
-                if test == 'pep8':
-                    suite = loader.loadTestsFromTestCase(CodeCheck)
-                    tests.append(suite)
-            else:
-                logger.error('{} is not a valid test, skipping.'.format(test))
+            suite = loader.loadTestsFromName(test)
+            tests.append(suite)
     else:
-        logger.debug('No test selected. Testing pep8 by default')
-        suite = loader.loadTestsFromTestCase(CodeCheck)
+        logger.info('No test selected. Testing pep8 by default')
+        suite = loader.loadTestsFromName('tests')
         tests.append(suite)
 
     full_test = unittest.TestSuite(tests)
@@ -33,7 +40,8 @@ def run_test(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run tests.")
-    parser.add_argument("tests", nargs='*', help='Options: pep8')
+    parser = argparse.ArgumentParser(description="Run tests. Use dot notation \
+                                                  starting from the tests folder")
+    parser.add_argument("tests", nargs='*', help='Options: {}'.format(list_tests()))
     args = parser.parse_args()
     run_test(args)

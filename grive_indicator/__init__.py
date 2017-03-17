@@ -24,9 +24,7 @@ from datetime import datetime
 from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
-from grive_indicator import settings
-from grive_indicator import configure
-from grive_indicator import UI
+from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
 
 

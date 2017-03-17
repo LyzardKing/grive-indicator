@@ -12,7 +12,7 @@ gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import AppIndicator3
-from grive_indicator import UI
+from grive_indicator.UI import InfoDialog, EntryDialog
 from time import sleep
 import threading
 import re

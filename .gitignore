@@ -6,4 +6,7 @@ __pycache__/
 build/
 *.egg-info
 *.pybuild
-build/*
+dist/
+
+# Log used by setup.py
+installed.log
