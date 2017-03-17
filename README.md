@@ -11,7 +11,7 @@ Prerequisites
 ===============
 
 1. Install "grive", "python-appindicator"
-2. If using for the first time, have "grive" authenticated with your chosen Google account by (creating and) changing directory (cd) to "~/Google Drive" and then entering the terminal command "grive -a" in that directory.
+2. If using for the first time, magic happens ;). (It will run grive -a, open a webpage and ask for the code, parsing the cli grive)
 
 Installation
 ===============
@@ -26,5 +26,3 @@ ToDo
 ===============
 
 1. Add sync based on inotifywait (e.g. using a command like: inotifywait -r -e modify,attrib,moved_to,moved_from,move_self,create,delete,delete_self "$HOME/Google Drive")
-2. Create a simple GUI for "grive" settings.
-3. Fix selective settings.
