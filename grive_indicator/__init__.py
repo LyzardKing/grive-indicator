@@ -103,10 +103,6 @@ class GriveIndicator:
         self.syncNow(None)
         GLib.timeout_add_seconds(60 * int(getValue('time')), self.refresh)
 
-    def enableInotifywait(self):
-        p = Process(target=notifyProcess, args=None)
-        p.start()
-
     def syncDaemon(self):
         thread = threading.Thread(target=self.refresh)
         thread.daemon = True
