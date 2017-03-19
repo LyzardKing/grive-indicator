@@ -19,7 +19,6 @@ import re
 
 
 GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
-logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
 LOCK = False

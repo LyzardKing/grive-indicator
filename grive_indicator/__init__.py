@@ -27,7 +27,7 @@ from contextlib import suppress
 from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
 
-
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -54,10 +54,6 @@ class GriveIndicator:
         else:
             self.syncDaemon()
 
-        # while not os.path.isfile(os.path.join(os.environ['HOME'], '.grive-indicator')):
-        #     sleep(3)
-        # self.syncDaemon()
-
     def menu_setup(self):
         self.menu = Gtk.Menu()
 
@@ -76,13 +72,13 @@ class GriveIndicator:
         self.Remote_item.connect("activate", self.openRemote)
         self.Remote_item.show()
 
-        self.Local_item = Gtk.MenuItem("Open local GDrive")
+        self.Local_item = Gtk.MenuItem("Open local Folder")
         self.Local_item.connect("activate", self.openLocal)
         self.Local_item.show()
 
-        self.Local_item = Gtk.MenuItem("Open Settings")
-        self.Local_item.connect("activate", self.settings)
-        self.Local_item.show()
+        self.Settings_item = Gtk.MenuItem("Open Settings")
+        self.Settings_item.connect("activate", self.settings)
+        self.Settings_item.show()
 
         self.seperator3_item = Gtk.SeparatorMenuItem()
         self.seperator3_item.show()
@@ -96,6 +92,7 @@ class GriveIndicator:
         self.menu.append(self.seperator1_item)
         self.menu.append(self.Remote_item)
         self.menu.append(self.Local_item)
+        self.menu.append(self.Settings_item)
         self.menu.append(self.seperator3_item)
         self.menu.append(self.Quit_item)
 
@@ -111,11 +108,10 @@ class GriveIndicator:
     def syncNow(self, _):
         self.lastSync_item.set_label('Syncing...')
         folder = getValue('folder')
-        grive_cmd = ['grive', '--dry-run']
+        grive_cmd = ['grive']
         if not os.path.isfile(os.path.join(folder, '.grive')):
             # Run grive for the first time
             # On sequent runs grive remembers the selective setting.
-            # TODO: How to change the selective settings
             selective = getValue('selective')
             if selective != '':
                 grive_cmd.append('--dir "{}"'.format(selective))
