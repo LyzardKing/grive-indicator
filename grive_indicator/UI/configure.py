@@ -8,7 +8,6 @@ import shutil
 import site
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-import json
 import subprocess
 import logging
 from grive_indicator.tools import runConfigure

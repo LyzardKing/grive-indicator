@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import json
 from pathlib import Path
 import subprocess
 import logging
 import gi
+import configparser
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
@@ -15,13 +15,36 @@ from gi.repository import AppIndicator3
 from grive_indicator.UI import InfoDialog, EntryDialog
 from time import sleep
 import threading
+import shutil
 import re
 
 
-GRIVEI_PATH = os.path.abspath(os.path.join(str(Path(__file__).parents[0])))
+root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
+config_file = os.path.join(os.environ['HOME'], '.config', 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
 autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
 LOCK = False
+
+
+class Config:
+
+    def __init__(self):
+        self.config = configparser.ConfigParser()
+
+    def config():
+        return self.config
+
+    def getValue(self, key):
+        self.config.read(config_file)
+        return self.config['DEFAULT'][key]
+
+    def setValue(self, key, value):
+        self.config.read(config_file)
+        self.config['DEFAULT'][key] = value
+        with open(config_file, 'w') as configfile:
+            self.config.write(configfile)
+        subprocess.Popen(['notify-send', '{} set to {}.'.format(key.capitalize(), value),
+                          '--icon={}/drive-dark.png'.format(os.path.abspath(os.path.join(root_dir, "data")))])
 
 
 def runConfigure(folder, selective=None):
@@ -40,13 +63,12 @@ def runConfigure(folder, selective=None):
 
 def _runConfigure(folder, selective=''):
     logger.debug('Saving configurations: folder:%s selective:%s' % (folder, selective))
-    data = {"style": "dark", "time": 30,
-            "folder": folder,
-            "selective": selective,
-            "upload_speed": '',
-            "download_speed": ''}
-    with open("{}/.grive-indicator".format(os.environ['HOME']), 'w+') as json_data:
-        json.dump(data, json_data)
+    shutil.copy(os.path.join(root_dir, 'data', 'grive_indicator.conf'), config_file)
+    conf = Config()
+    conf.config['DEFAULT']['folder'] = folder
+    conf.config['DEFAULT']['selective'] = selective
+    with open(config_file, 'w') as configfile:
+        conf.config.write(configfile)
 
 
 def runAuth(folder):
@@ -74,29 +96,16 @@ def _runAuth(folder):
     LOCK = False
 
 
-def getValue(key):
-    with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
-        data = json.load(json_data)
-    return data[key]
-
-
-def setValue(key, value):
-    with open("{}/.grive-indicator".format(os.environ['HOME']), 'r') as json_data:
-        data = json.load(json_data)
-    with open("{}/.grive-indicator".format(os.environ['HOME']), 'w') as json_data:
-        data[key] = value
-        json.dump(data, json_data)
-    subprocess.Popen(['notify-send', '{} set to {}.'.format(key.capitalize(), value),
-                      '--icon={}/drive-dark.png'.format(os.path.abspath(os.path.join(GRIVEI_PATH, "data")))])
-
-
 def getIcon():
     try:
-        style = getValue('style')
-    except:
+        style = Config().getValue('style')
+        logger.debug('Style: %s.' % style)
+    except Exception as e:
+        logger.error(e)
         style = 'dark'
     if style == 'light' or style == 'dark':
-        return os.path.join(GRIVEI_PATH, "data", 'drive-' + style + '.png')
+        icon = os.path.join(root_dir, "data", 'drive-' + style + '.png')
+        return icon
     else:
         return style
 

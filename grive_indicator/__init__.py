@@ -7,10 +7,9 @@ import os
 import shutil
 import subprocess
 import sys
-import json
 import site
 import re
-import threading
+from concurrent import futures
 import logging
 from time import sleep
 gi.require_version('Gtk', '3.0')
@@ -25,7 +24,7 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import getIcon, GRIVEI_PATH, setValue, getValue, ind
+from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,9 +46,7 @@ class GriveIndicator:
 
         self.menu_setup()
         ind.set_menu(self.menu)
-
-        if not os.path.exists(os.path.join(os.environ['HOME'], '.grive-indicator')):
-            # self.lastSync_item.set_label('Initial Sync...')
+        if not os.path.exists(config_file):
             configure.main()
         else:
             self.syncDaemon()
@@ -98,29 +95,27 @@ class GriveIndicator:
 
     def refresh(self):
         self.syncNow(None)
-        GLib.timeout_add_seconds(60 * int(getValue('time')), self.refresh)
+        GLib.timeout_add_seconds(60 * int(Config().getValue('time')), self.refresh)
 
     def syncDaemon(self):
-        thread = threading.Thread(target=self.refresh)
-        thread.daemon = True
-        thread.start()
+        executor = futures.ThreadPoolExecutor(max_workers=1)
+        self.future = executor.submit(self.refresh)
 
     def syncNow(self, _):
         self.lastSync_item.set_label('Syncing...')
-        folder = getValue('folder')
+        folder = Config().getValue('folder')
         grive_cmd = ['grive']
         if not os.path.isfile(os.path.join(folder, '.grive')):
             # Run grive for the first time
             # On sequent runs grive remembers the selective setting.
-            selective = getValue('selective')
+            selective = Config().getValue('selective')
             if selective != '':
                 grive_cmd.append('--dir "{}"'.format(selective))
         self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
-        subprocess.run(['killall', 'grive'])
-        upload_speed = getValue('upload_speed')
+        upload_speed = Config().getValue('upload_speed')
         if upload_speed != '':
             grive_cmd.append('--upload-speed {}'.format(upload_speed))
-        download_speed = getValue('download_speed')
+        download_speed = Config().getValue('download_speed')
         if download_speed != '':
             grive_cmd.append('--download-speed {}'.format(download_speed))
         try:
@@ -135,16 +130,19 @@ class GriveIndicator:
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
     def openRemote(self, _):
-        subprocess.Popen(["xdg-open", "https://drive.google.com/"])
+        subprocess.run(["xdg-open", "https://drive.google.com/"])
 
     def openLocal(self, _):
-        subprocess.Popen(["xdg-open", getValue('folder')])
+        subprocess.run(["xdg-open", Config().getValue('folder')])
 
     def settings(self, _):
         settings.main()
 
     def Quit(self, _):
-        subprocess.run(['killall', 'grive-sync'])
+        if self.future.running():
+            response = UI.InfoDialog.main(parent=None, label='Grive is currently syncing. Please wait a moment.')
+            if response == Gtk.ResponseType.OK:
+                logger.debug('Finishing sync.')
         Gtk.main_quit()
 
     def main(self):

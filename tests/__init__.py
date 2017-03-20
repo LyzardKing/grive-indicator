@@ -4,7 +4,7 @@ import os
 import pep8
 import grive_indicator
 from pathlib import Path
-from grive_indicator import GRIVEI_PATH
+from grive_indicator import root_dir
 import unittest
 
 
@@ -18,7 +18,7 @@ class CodeCheck(unittest.TestCase):
         pep8style = pep8.StyleGuide(config_file=os.path.join(config_folder, '.pep8'))
 
         # we want to use either local or system umake, but always local tests files
-        dir_grive_indicator = os.path.dirname(os.path.join(config_folder, 'grive_indicator'))
+        dir_grive_indicator = os.path.dirname(os.path.join(config_folder, 'drive_indicator'))
         results = pep8style.check_files([dir_grive_indicator, os.path.join(config_folder, "bin")])
         self.assertEqual(results.get_statistics(), [])
 
