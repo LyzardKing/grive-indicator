@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import nose
 import logging
 import unittest
 import re
@@ -27,7 +26,10 @@ def run_test(args):
     loader = unittest.TestLoader()
     if len(args.tests) > 0:
         for test in args.tests:
-            suite = loader.loadTestsFromName(test)
+            if test == 'pep8':
+                suite = loader.loadTestsFromName('__init__')
+            else:
+                suite = loader.loadTestsFromName(test)
             tests.append(suite)
     else:
         logger.info('No test selected. Testing pep8 by default')

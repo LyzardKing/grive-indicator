@@ -1,0 +1,7 @@
+language: python
+dist: trusty
+python:
+  - "3.4"
+before_install:
+    - sudo apt-get install -y python3-gi python3-requests python3-xdg python3-pep8 python3-setuptools
+script: PATH="/usr/bin:$PATH" ./runtests pep8
