@@ -11,7 +11,7 @@ from gi.repository import Gtk
 import subprocess
 import logging
 from grive_indicator.tools import runConfigure
-from grive_indicator.UI import InfoDialog
+from grive_indicator.UI import InfoDialog, CSDWindow
 
 
 logger = logging.getLogger(__name__)
@@ -20,17 +20,7 @@ logger = logging.getLogger(__name__)
 class ConfigureWindow(Gtk.Window):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="Configure")
-
-        hb = Gtk.HeaderBar()
-        hb.set_show_close_button(False)
-        hb.props.title = "HeaderBar example"
-        self.set_titlebar(hb)
-
-        self.set_border_width(6)
-
-        grid = Gtk.Grid()
-        self.add(grid)
+        super().__init__(title='Settings')
 
         label_folder = Gtk.Label("Local Folder")
         self.folder_chooser = Gtk.FileChooserButton(action=Gtk.FileChooserAction.SELECT_FOLDER)
@@ -46,12 +36,12 @@ class ConfigureWindow(Gtk.Window):
         escape_button.connect('clicked',
                               self.cancel)
 
-        grid.add(label_folder)
-        grid.attach(self.folder_chooser, 1, 0, 2, 1)
-        grid.attach_next_to(label_selective, label_folder, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(self.remote_folder, label_selective, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(confirm_button, self.remote_folder, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(escape_button, confirm_button, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.add(label_folder)
+        self.grid.attach(self.folder_chooser, 1, 0, 2, 1)
+        self.grid.attach_next_to(label_selective, label_folder, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(self.remote_folder, label_selective, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(confirm_button, self.remote_folder, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(escape_button, confirm_button, Gtk.PositionType.RIGHT, 2, 1)
 
     def confirmSettings(self, widget):
         folder_chooser = self.folder_chooser.get_filename()

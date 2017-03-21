@@ -101,7 +101,7 @@ class GriveIndicator:
         executor = futures.ThreadPoolExecutor(max_workers=1)
         self.future = executor.submit(self.refresh)
 
-    def syncNow(self, _):
+    def syncNow(self, widget):
         self.lastSync_item.set_label('Syncing...')
         folder = Config().getValue('folder')
         grive_cmd = ['grive']
@@ -122,25 +122,26 @@ class GriveIndicator:
             logger.debug('Running: {}'.format(grive_cmd))
             subprocess.check_call(grive_cmd, cwd=folder)
         except CalledProcessError as e:
-            response = UI.InfoDialog.main(parent=None, label='Something went terribly wrong.')
+            response = UI.InfoDialog.main(parent=None, title='Error', label='Something went terribly wrong.')
             if response == Gtk.ResponseType.OK:
                 logger.error('Error occurred running grive')
                 Gtk.main_quit()
                 exit(1)
         self.lastSync_item.set_label('Last sync at ' + self.lastSync)
 
-    def openRemote(self, _):
+    def openRemote(self, widget):
         subprocess.run(["xdg-open", "https://drive.google.com/"])
 
-    def openLocal(self, _):
+    def openLocal(self, widget):
         subprocess.run(["xdg-open", Config().getValue('folder')])
 
-    def settings(self, _):
+    def settings(self, widget):
         settings.main()
 
-    def Quit(self, _):
+    def Quit(self, widget):
         if self.future.running():
-            response = UI.InfoDialog.main(parent=None, label='Grive is currently syncing. Please wait a moment.')
+            response = UI.InfoDialog.main(parent=None, title='Warning',
+                                          label='Grive is currently syncing. Please wait a moment.')
             if response == Gtk.ResponseType.OK:
                 logger.debug('Finishing sync.')
         Gtk.main_quit()

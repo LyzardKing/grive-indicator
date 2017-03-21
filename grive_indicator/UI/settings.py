@@ -12,19 +12,16 @@ from contextlib import suppress
 import logging
 import subprocess
 from grive_indicator.tools import getIcon, Config, ind, root_dir, autostart_file
+from grive_indicator.UI import CSDWindow
 
 logger = logging.getLogger(__name__)
 
 
-class SettingsWindow(Gtk.Window):
+class SettingsWindow(CSDWindow):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="Settings")
+        super().__init__(title='Settings')
 
-        self.set_border_width(6)
-
-        grid = Gtk.Grid()
-        self.add(grid)
         conf = Config()
         label_timer = Gtk.Label("Sync timer")
         self.timer_entry = Gtk.Entry()
@@ -55,17 +52,17 @@ class SettingsWindow(Gtk.Window):
         confirm_button.connect('clicked',
                                self.confirmSettings)
 
-        grid.add(label_timer)
-        grid.attach(self.timer_entry, 1, 0, 2, 1)
-        grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(label_up_speed, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
-        grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
-        grid.attach_next_to(confirm_button, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.add(label_timer)
+        self.grid.attach(self.timer_entry, 1, 0, 2, 1)
+        self.grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_up_speed, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(confirm_button, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
