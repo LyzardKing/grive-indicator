@@ -13,6 +13,7 @@ from gi.repository import Gtk
 from gi.repository import Gio
 from gi.repository import AppIndicator3
 from grive_indicator.UI import InfoDialog, EntryDialog
+from xdg.BaseDirectory import xdg_config_home
 from time import sleep
 import threading
 import shutil
@@ -20,9 +21,9 @@ import re
 
 
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-config_file = os.path.join(os.environ['HOME'], '.config', 'grive_indicator.conf')
+config_file = os.path.join(xdg_config_home, 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
-autostart_file = os.path.join(os.environ['HOME'], '.config', 'autostart', 'grive-indicator.desktop')
+autostart_file = os.path.join(xdg_config_home, 'autostart', 'grive-indicator.desktop')
 LOCK = False
 
 
@@ -65,8 +66,8 @@ def _runConfigure(folder, selective=''):
     logger.debug('Saving configurations: folder:%s selective:%s' % (folder, selective))
     shutil.copy(os.path.join(root_dir, 'data', 'grive_indicator.conf'), config_file)
     conf = Config()
-    conf.config['DEFAULT']['folder'] = folder
-    conf.config['DEFAULT']['selective'] = selective
+    conf.setValue('folder', folder)
+    conf.setValue('selective', selective)
     with open(config_file, 'w') as configfile:
         conf.config.write(configfile)
 
