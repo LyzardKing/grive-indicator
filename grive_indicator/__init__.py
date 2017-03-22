@@ -47,6 +47,7 @@ class GriveIndicator:
         self.menu_setup()
         ind.set_menu(self.menu)
         if not os.path.exists(config_file):
+            logger.debug('Missing config file %s.' % config_file)
             configure.main()
         else:
             self.syncDaemon()

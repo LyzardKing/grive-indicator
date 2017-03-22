@@ -10,7 +10,7 @@ import configparser
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
-from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import AppIndicator3
 from grive_indicator.UI import InfoDialog, EntryDialog
 from xdg.BaseDirectory import xdg_config_home
@@ -21,9 +21,9 @@ import re
 
 
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-config_file = os.path.join(xdg_config_home, 'grive_indicator.conf')
+config_file = os.path.join(GLib.get_user_config_dir(), 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
-autostart_file = os.path.join(xdg_config_home, 'autostart', 'grive-indicator.desktop')
+autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
 LOCK = False
 
 
