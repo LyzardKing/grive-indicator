@@ -31,7 +31,8 @@ class ConfigureWindow(CSDWindow):
         scrolledwindow.set_hexpand(True)
         scrolledwindow.set_vexpand(True)
         self.remote_folder.get_buffer().set_text("# Set rules For selective sync.\n"
-            + "# Check the man page or https://github.com/vitalif/grive2#griveignore.")
+                                                 "# Check the man page or"
+                                                 "https://github.com/vitalif/grive2#griveignore.")
         scrolledwindow.add(self.remote_folder)
 
         confirm_button = Gtk.Button('Ok')
