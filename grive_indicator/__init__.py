@@ -66,15 +66,15 @@ class GriveIndicator:
         self.seperator1_item = Gtk.SeparatorMenuItem()
         self.seperator1_item.show()
 
-        self.Remote_item = Gtk.MenuItem("Open remote GDrive")
+        self.Remote_item = Gtk.MenuItem("Remote Google Drive")
         self.Remote_item.connect("activate", self.openRemote)
         self.Remote_item.show()
 
-        self.Local_item = Gtk.MenuItem("Open local Folder")
+        self.Local_item = Gtk.MenuItem("Local Folder")
         self.Local_item.connect("activate", self.openLocal)
         self.Local_item.show()
 
-        self.Settings_item = Gtk.MenuItem("Open Settings")
+        self.Settings_item = Gtk.MenuItem("Preferences")
         self.Settings_item.connect("activate", self.settings)
         self.Settings_item.show()
 
