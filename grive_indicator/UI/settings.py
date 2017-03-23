@@ -38,11 +38,6 @@ class SettingsWindow(CSDWindow):
         startup_swith.set_active(os.path.isfile(autostart_file))
         startup_swith.connect('notify::active', self.on_startup_active)
 
-        log_enable = Gtk.Label("Enable logs")
-        log_switch = Gtk.Switch()
-        log_switch.set_active(Config().getValue('log') == 'True')
-        log_switch.connect('notify::active', self.on_log_activate)
-
         label_up_speed = Gtk.Label("Limit Upload Speed")
         self.upload_speed = Gtk.Entry()
         tmp = conf.getValue('upload_speed')

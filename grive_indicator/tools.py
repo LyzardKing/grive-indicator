@@ -20,9 +20,7 @@ import re
 
 
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-config_folder = os.path.join(GLib.get_user_config_dir(), 'grive-indicator')
-config_file = os.path.join(config_folder, 'grive_indicator.conf')
-log_file = os.path.join(config_folder, 'grive_indicator.log')
+config_file = os.path.join(GLib.get_user_config_dir(), 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
 Notify.init(__name__)
 autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
