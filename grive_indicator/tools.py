@@ -12,8 +12,7 @@ gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import AppIndicator3
-from grive_indicator.UI import InfoDialog, EntryDialog
-from xdg.BaseDirectory import xdg_config_home
+from .UI import InfoDialog, EntryDialog
 from time import sleep
 import threading
 import shutil
@@ -49,12 +48,10 @@ class Config:
 
 
 def runConfigure(folder, selective=None):
-    if not selective:
-        selective = ''
     _runConfigure(folder, selective)
     if not os.path.isfile(os.path.join(folder, '.grive')):
-        response = UI.InfoDialog.main(parent=None,
-                                      label='The  is not currently registered with grive. Do you want to proceed?')
+        response = InfoDialog.main(parent=None, title='Warning',
+                                   label='The  is not currently registered with grive. Do you want to proceed?')
         if response == Gtk.ResponseType.OK:
             logger.debug('Confirm auth')
             LOCK = True
@@ -62,12 +59,14 @@ def runConfigure(folder, selective=None):
             runAuth(folder)
 
 
-def _runConfigure(folder, selective=''):
+def _runConfigure(folder, selective=None):
     logger.debug('Saving configurations: folder:%s selective:%s' % (folder, selective))
     shutil.copy(os.path.join(root_dir, 'data', 'grive_indicator.conf'), config_file)
+    with open(os.path.join(folder, '.griveignore'), 'w') as griveignore:
+        griveignore.write(selective)
     conf = Config()
     conf.setValue('folder', folder)
-    conf.setValue('selective', selective)
+    conf.setValue('selective', str(selective is not None))
     with open(config_file, 'w') as configfile:
         conf.config.write(configfile)
 
@@ -90,7 +89,7 @@ def _runAuth(folder):
             break
     url = re.search('https.*googleusercontent.com', txt).group(0)
     subprocess.Popen(['xdg-open', url])
-    response = UI.EntryDialog.main(parent=None, label='Insert the Auth Code')
+    response = EntryDialog.main(parent=None, title='Warning', label='Insert the Auth Code')
     logger.debug(response)
     auth.stdin.write(response.encode())
     auth.stdin.flush()

@@ -11,8 +11,8 @@ from gi.repository import Gtk
 from contextlib import suppress
 import logging
 import subprocess
-from grive_indicator.tools import getIcon, Config, ind, root_dir, autostart_file
-from grive_indicator.UI import CSDWindow
+from ..tools import getIcon, Config, ind, root_dir, autostart_file
+from ..UI import CSDWindow
 
 logger = logging.getLogger(__name__)
 
