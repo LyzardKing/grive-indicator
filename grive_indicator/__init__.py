@@ -63,9 +63,6 @@ class GriveIndicator:
         self.syncNow_item.connect("activate", self.syncNow)
         self.syncNow_item.show()
 
-        self.seperator1_item = Gtk.SeparatorMenuItem()
-        self.seperator1_item.show()
-
         self.Remote_item = Gtk.MenuItem("Remote Google Drive")
         self.Remote_item.connect("activate", self.openRemote)
         self.Remote_item.show()
@@ -78,20 +75,21 @@ class GriveIndicator:
         self.Settings_item.connect("activate", self.settings)
         self.Settings_item.show()
 
-        self.seperator3_item = Gtk.SeparatorMenuItem()
-        self.seperator3_item.show()
-
         self.Quit_item = Gtk.MenuItem("Quit")
         self.Quit_item.connect("activate", self.Quit)
         self.Quit_item.show()
 
+        self.seperator_item = Gtk.SeparatorMenuItem()
+        self.seperator_item.show()
+
         self.menu.append(self.lastSync_item)
         self.menu.append(self.syncNow_item)
-        self.menu.append(self.seperator1_item)
+        self.menu.append(self.seperator_item)
         self.menu.append(self.Remote_item)
         self.menu.append(self.Local_item)
+        self.menu.append(self.seperator_item)
         self.menu.append(self.Settings_item)
-        self.menu.append(self.seperator3_item)
+        self.menu.append(self.seperator_item)
         self.menu.append(self.Quit_item)
 
     def refresh(self):

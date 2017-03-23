@@ -33,10 +33,15 @@ class SettingsWindow(CSDWindow):
         theme_swith.set_active(Config().getValue('style') == 'dark')
         theme_swith.connect('notify::active', self.on_dark_theme_activate)
 
-        label_startup = Gtk.Label("Enable  on Startup")
+        label_startup = Gtk.Label("Enable on Startup")
         startup_swith = Gtk.Switch()
         startup_swith.set_active(os.path.isfile(autostart_file))
         startup_swith.connect('notify::active', self.on_startup_active)
+
+        log_enable = Gtk.Label("Enable logs")
+        log_switch = Gtk.Switch()
+        log_switch.set_active(Config().getValue('log') == 'True')
+        log_switch.connect('notify::active', self.on_log_activate)
 
         label_up_speed = Gtk.Label("Limit Upload Speed")
         self.upload_speed = Gtk.Entry()
@@ -77,6 +82,9 @@ class SettingsWindow(CSDWindow):
             subprocess.run(['xdg-open', '.gitignore'], cwd=Config().getValue('folder'))
         except:
             logger.error('Accessing gitignore file')
+
+    def on_log_activate(self, switch, gparam):
+        Config().setValue('log', switch.get_active())
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
