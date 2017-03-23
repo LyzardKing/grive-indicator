@@ -10,7 +10,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import subprocess
 import logging
-from ..tools import runConfigure
+from ..tools import runConfigure, griveignore_init
 from ..UI import InfoDialog, CSDWindow
 
 
@@ -30,9 +30,7 @@ class ConfigureWindow(CSDWindow):
         scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.set_hexpand(True)
         scrolledwindow.set_vexpand(True)
-        self.remote_folder.get_buffer().set_text("# Set rules For selective sync.\n"
-                                                 "# Check the man page or"
-                                                 "https://github.com/vitalif/grive2#griveignore.")
+        self.remote_folder.get_buffer().set_text(griveignore_init)
         scrolledwindow.add(self.remote_folder)
 
         confirm_button = Gtk.Button('Ok')

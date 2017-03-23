@@ -11,7 +11,7 @@ from gi.repository import Gtk
 from contextlib import suppress
 import logging
 import subprocess
-from ..tools import getIcon, Config, ind, root_dir, autostart_file
+from ..tools import getIcon, Config, ind, root_dir, autostart_file, griveignore_init
 from ..UI import CSDWindow
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,9 @@ class SettingsWindow(CSDWindow):
         tmp = conf.getValue('download_speed')
         self.download_speed.set_text(tmp if tmp is not None else '')
 
+        edit_ignore = Gtk.Button('Update .griveignore')
+        edit_ignore.connect('clicked', self.open_griveignore)
+
         confirm_button = Gtk.Button('Ok')
         confirm_button.connect('clicked',
                                self.confirmSettings)
@@ -62,7 +65,18 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(confirm_button, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(edit_ignore, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(confirm_button, edit_ignore, Gtk.PositionType.BOTTOM, 1, 1)
+
+    def open_griveignore(self, gparam):
+        griveignore = os.path.join(Config().getValue('folder'), '.gitignore')
+        if not os.path.isfile(griveignore):
+            with open(griveignore, 'w') as griveignore_file:
+                griveignore_file.write(griveignore_init)
+        try:
+            subprocess.run(['xdg-open', '.gitignore'], cwd=Config().getValue('folder'))
+        except:
+            logger.error('Accessing gitignore file')
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
