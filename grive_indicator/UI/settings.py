@@ -8,6 +8,7 @@ import shutil
 import site
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+from gi.repository import Gdk
 from contextlib import suppress
 import logging
 import subprocess
@@ -69,14 +70,16 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(confirm_button, edit_ignore, Gtk.PositionType.BOTTOM, 1, 1)
 
     def open_griveignore(self, gparam):
-        griveignore = os.path.join(Config().getValue('folder'), '.gitignore')
+        griveignore = os.path.join(Config().getValue('folder'), '.griveignore')
         if not os.path.isfile(griveignore):
             with open(griveignore, 'w') as griveignore_file:
                 griveignore_file.write(griveignore_init)
         try:
-            subprocess.run(['xdg-open', '.gitignore'], cwd=Config().getValue('folder'))
-        except:
-            logger.error('Accessing gitignore file')
+            Gtk.show_uri(None,
+                         "file://{}".format(griveignore),
+                         Gdk.CURRENT_TIME)
+        except Exception as e:
+            logger.error('Accessing griveignore file: %s' % e)
 
     def on_log_activate(self, switch, gparam):
         Config().setValue('log', switch.get_active())
