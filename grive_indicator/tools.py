@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import subprocess
+import requests
 import logging
 import gi
 import configparser
@@ -50,6 +51,17 @@ class Config:
         notification = Notify.Notification.new('{} set to {}.'.format(key.capitalize(), value))
         notification.set_icon_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(getAlertIcon()))
         notification.show()
+
+
+def is_connected(url='https://drive.google.com/', timeout=10):
+    try:
+        r = requests.get(url=url, timeout=timeout)
+        if r.status_code != 200:
+            raise Exception
+    except:
+        logger.error('No internet connection available. Skipping sync.')
+        return False
+    return True
 
 
 def runConfigure(folder, selective=None):

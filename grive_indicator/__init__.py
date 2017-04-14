@@ -20,6 +20,7 @@ import dbus.mainloop.glib
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import Gio
 from gi.repository import AppIndicator3
 from gi.repository import GLib
@@ -29,7 +30,7 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file
+from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file, is_connected
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -37,14 +38,15 @@ logger = logging.getLogger(__name__)
 # Start dbus
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
+
 class GriveIndicator(dbus.service.Object):
 
     def __init__(self, bus, path, name):
-        dbus.service.Object.__init__ (self, bus, path, name)
+        dbus.service.Object.__init__(self, bus, path, name)
         self.running = False
 
-    @dbus.service.method ("org.example.grive_indicator")
-    def is_running (self):
+    @dbus.service.method("org.example.grive_indicator")
+    def is_running(self):
         return self.running
 
     def menu_setup(self):
@@ -88,7 +90,8 @@ class GriveIndicator(dbus.service.Object):
         self.menu.append(self.Quit_item)
 
     def refresh(self):
-        self.syncNow(None)
+        if is_connected() is True:
+            self.syncNow(None)
         GLib.timeout_add_seconds(60 * int(Config().getValue('time')), self.refresh)
 
     def syncDaemon(self):
@@ -105,7 +108,6 @@ class GriveIndicator(dbus.service.Object):
             selective = Config().getValue('selective')
             if selective != '':
                 grive_cmd.append('--dir "{}"'.format(selective))
-        self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
         upload_speed = Config().getValue('upload_speed')
         if upload_speed != '':
             grive_cmd.append('--upload-speed {}'.format(upload_speed))
@@ -115,19 +117,17 @@ class GriveIndicator(dbus.service.Object):
         try:
             logger.debug('Running: {}'.format(grive_cmd))
             subprocess.check_call(grive_cmd, cwd=folder)
-        except CalledProcessError as e:
-            response = UI.InfoDialog.main(parent=None, title='Error', label='Something went terribly wrong.')
-            if response == Gtk.ResponseType.OK:
-                logger.error('Error occurred running grive')
-                Gtk.main_quit()
-                exit(1)
-        self.lastSync_item.set_label('Last sync at ' + self.lastSync)
+            self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
+            self.lastSync_item.set_label('Last sync at ' + self.lastSync)
+        except:
+            logger.error('Error occurred running grive. Skipping sync.')
+            pass
 
     def openRemote(self, widget):
-        subprocess.run(["xdg-open", "https://drive.google.com/"])
+        Gtk.show_uri(None, "https://drive.google.com", Gdk.CURRENT_TIME)
 
     def openLocal(self, widget):
-        subprocess.run(["xdg-open", Config().getValue('folder')])
+        Gtk.show_uri(None, "file://{}".format(Config().getValue('folder')), Gdk.CURRENT_TIME)
 
     def settings(self, widget):
         settings.main()
@@ -162,10 +162,11 @@ class GriveIndicator(dbus.service.Object):
             self.syncDaemon()
         Gtk.main()
 
+
 def main():
-    bus = dbus.SessionBus ()
-    request = bus.request_name ("org.example.grive_indicator", dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
+    bus = dbus.SessionBus()
+    request = bus.request_name("org.example.grive_indicator", dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
     if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-        app = GriveIndicator (bus, '/', "org.example.grive_indicator")
+        app = GriveIndicator(bus, '/', "org.example.grive_indicator")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         app.main()

@@ -1,0 +1,69 @@
+name: grive-indicator
+version: 'master'
+summary: Simple indicator for Grive sync tool
+description: |
+  This is my-snap's description. You have a paragraph or two to tell the
+  most important story about your snap. Keep it under 100 words though,
+  we live in tweetspace and your description wants to look good in the snap
+  store.
+
+grade: stable
+confinement: strict
+
+apps:
+  grive-indicator:
+    command: grive-indicator
+    plugs:
+      - home
+      - network
+      - unity7
+
+slots:
+  session-dbus:
+    interface: dbus
+    name: org.example.grive_indicator
+    bus: session    
+
+parts:
+  grive-indicator:
+    source: .
+    plugin: python
+    python-version: python3
+    build-packages:
+      - python3-setuptools
+    stage-packages:
+      - python3-gi
+      - python3-dbus
+      - python3-requests
+      - gir1.2-gtk-3.0
+      - gir1.2-appindicator3-0.1
+      - gir1.2-notify-0.7
+      - libnotify4
+    after: [indicator-gtk3]
+  grive:
+    source: https://github.com/vitalif/grive2.git
+    plugin: cmake
+    build-packages:
+      - cmake
+      - build-essential
+      - libgcrypt11-dev
+      - libyajl-dev
+      - libboost-all-dev
+      - libcurl4-openssl-dev
+      - libexpat1-dev
+      - libcppunit-dev
+      - binutils-dev
+      - pkg-config
+      - zlib1g-dev
+    stage-packages:
+      - binutils
+      - libboost-filesystem1.58.0
+      - libboost-program-options1.58.0
+      - libboost-regex1.58.0
+      - libboost-system1.58.0
+      - libc6
+      - libcurl3
+      - libgcc1
+      - libgcrypt20
+      - libstdc++6
+      - libyajl2

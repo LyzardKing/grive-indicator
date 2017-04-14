@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+import sys
 
 data = ["data/*"]
 
@@ -14,8 +15,8 @@ setup(
     description='Gtk Indicator For Grive',
     packages=find_packages(exclude=["tests*"]),
     package_data={'grive_indicator': data},
-    data_files=[('/usr/share/applications', ['grive-indicator.desktop']),
-                ('/usr/share/pixmaps/', ['web-google-drive.svg'])],
+    data_files=[(sys.prefix + '/share/applications', ['grive-indicator.desktop']),
+                (sys.prefix + '/share/pixmaps/', ['web-google-drive.svg'])],
     entry_points={
         'console_scripts': [
             'grive-indicator = grive_indicator:main',

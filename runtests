@@ -2,48 +2,38 @@
 
 import argparse
 import os
+import sys
 import logging
 import unittest
 import re
+from tests.tools import set_env
 
 logger = logging.getLogger(__name__)
 root_dir = os.path.abspath(os.path.dirname(__file__))
 TESTS_DIR = os.path.join(root_dir, 'tests')
 
-def list_tests():
-    tests = '[pep8]'
-    testLoader = unittest.TestLoader()
-    loader = testLoader.discover(TESTS_DIR, pattern='test_*.py')
-    for testsuite in loader:
-        for test in testsuite:
-            for item in test.__iter__():
-                test_label = re.search("\((.*)\)", str(item)).group(1)
-                tests += ' ' + test_label
-    return tests
-
-def run_test(args):
+def run_test(tests):
     tests = []
     loader = unittest.TestLoader()
     if len(args.tests) > 0:
         for test in args.tests:
-            if test == 'pep8':
-                suite = loader.loadTestsFromName('__init__')
-            else:
-                suite = loader.loadTestsFromName(test)
+            suite = loader.loadTestsFromName(test)
             tests.append(suite)
     else:
-        logger.info('No test selected. Testing pep8 by default')
+        print('No test selected. Testing pep8 by default')
         suite = loader.loadTestsFromName('tests')
         tests.append(suite)
 
     full_test = unittest.TestSuite(tests)
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(sys.stdout)
     runner.run(full_test)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run tests. Use dot notation \
-                                                  starting from the tests folder")
-    parser.add_argument("tests", nargs='*', help='Options: {}'.format(list_tests()))
+    parser = argparse.ArgumentParser(description="Run tests.")
+    parser.add_argument("tests", nargs='*', help='Use dot notation \
+                                                  starting from the tests folder')
+    parser.add_argument('--system', '-S', action='store_true')
     args = parser.parse_args()
-    run_test(args)
+    set_env(args.system)
+    run_test(args.tests)
