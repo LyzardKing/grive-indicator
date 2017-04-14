@@ -26,24 +26,30 @@ from multiprocessing import Process
 from subprocess import CalledProcessError
 from contextlib import suppress
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file, is_connected
+from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file, is_connected, runConfigure
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 # Singleton
 app = Gio.Application(application_id="foo.bar", flags=Gio.ApplicationFlags.FLAGS_NONE)
+
 def on_startup(instance):
     GriveIndicator()
 
-app.connect("startup", on_startup)
+def on_activate(instance):
+    logger.debug('Grive Indicator is running')
+
+app.connect('startup', on_startup)
+app.connect('activate', on_activate)
 
 class GriveIndicator():
 
     def __init__(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
-        parser.add_argument('--folder', '-f', action='store')
-        parser.add_argument('--selective', '-s', action='store')
+        parser.add_argument('--folder', '-f', action='store', help='destination folder')
+        parser.add_argument('--selective', '-s', action='store', help='comma separated list of (regex) files to not sync')
+        # TODO: Add auth parameter
         args = parser.parse_args()
         folder = args.folder
         selective = args.selective
@@ -54,8 +60,12 @@ class GriveIndicator():
 
         self.menu_setup()
         ind.set_menu(self.menu)
+        if folder:
+            if selective:
+                selective = selective.replace(',', '\n')
+            runConfigure(folder, selective)
         if not os.path.exists(config_file):
-            logger.debug('Missing config file %s.' % config_file)
+            logger.debug('Setting config file %s.' % config_file)
             configure.main()
         else:
             self.syncDaemon()
@@ -114,12 +124,6 @@ class GriveIndicator():
         self.lastSync_item.set_label('Syncing...')
         folder = Config().getValue('folder')
         grive_cmd = ['grive']
-        if not os.path.isfile(os.path.join(folder, '.grive')):
-            # Run grive for the first time
-            # On sequent runs grive remembers the selective setting.
-            selective = Config().getValue('selective')
-            if selective != '':
-                grive_cmd.append('--dir "{}"'.format(selective))
         upload_speed = Config().getValue('upload_speed')
         if upload_speed != '':
             grive_cmd.append('--upload-speed {}'.format(upload_speed))

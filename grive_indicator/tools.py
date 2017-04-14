@@ -65,6 +65,10 @@ def is_connected(url='https://drive.google.com/', timeout=10):
 
 
 def runConfigure(folder, selective=None):
+    if os.path.exists(config_file):
+        logger.info('A config file exists. Override? Y/n')
+        if input().lower() != 'y':
+            return
     _runConfigure(folder, selective)
     if not os.path.isfile(os.path.join(folder, '.grive')):
         response = InfoDialog.main(parent=None, title='Warning',
