@@ -13,10 +13,6 @@ import re
 from concurrent import futures
 import logging
 from time import sleep
-import dbus
-import dbus.service
-import dbus.mainloop
-import dbus.mainloop.glib
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 from gi.repository import Gtk
@@ -35,19 +31,35 @@ from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file, i
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# Start dbus
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+# Singleton
+app = Gio.Application(application_id="foo.bar", flags=Gio.ApplicationFlags.FLAGS_NONE)
+def on_startup(instance):
+    GriveIndicator()
 
+app.connect("startup", on_startup)
 
-class GriveIndicator(dbus.service.Object):
+class GriveIndicator():
 
-    def __init__(self, bus, path, name):
-        dbus.service.Object.__init__(self, bus, path, name)
-        self.running = False
+    def __init__(self):
+        parser = argparse.ArgumentParser(description='Grive Indicator.')
+        parser.add_argument('--folder', '-f', action='store')
+        parser.add_argument('--selective', '-s', action='store')
+        args = parser.parse_args()
+        folder = args.folder
+        selective = args.selective
 
-    @dbus.service.method("org.example.grive_indicator")
-    def is_running(self):
-        return self.running
+        if not shutil.which('grive'):
+            print('Missing grive executable in PATH.')
+            exit(1)
+
+        self.menu_setup()
+        ind.set_menu(self.menu)
+        if not os.path.exists(config_file):
+            logger.debug('Missing config file %s.' % config_file)
+            configure.main()
+        else:
+            self.syncDaemon()
+        Gtk.main()
 
     def menu_setup(self):
         self.menu = Gtk.Menu()
@@ -140,33 +152,6 @@ class GriveIndicator(dbus.service.Object):
                 logger.debug('Finishing sync.')
         Gtk.main_quit()
 
-    @dbus.service.method("org.example.grive_indicator")
-    def main(self):
-        parser = argparse.ArgumentParser(description='Grive Indicator.')
-        parser.add_argument('--folder', '-f', action='store')
-        parser.add_argument('--selective', '-s', action='store')
-        args = parser.parse_args()
-        folder = args.folder
-        selective = args.selective
-
-        if not shutil.which('grive'):
-            print('Missing grive executable in PATH.')
-            exit(1)
-
-        self.menu_setup()
-        ind.set_menu(self.menu)
-        if not os.path.exists(config_file):
-            logger.debug('Missing config file %s.' % config_file)
-            configure.main()
-        else:
-            self.syncDaemon()
-        Gtk.main()
-
 
 def main():
-    bus = dbus.SessionBus()
-    request = bus.request_name("org.example.grive_indicator", dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
-    if request != dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-        app = GriveIndicator(bus, '/', "org.example.grive_indicator")
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        app.main()
+    app.run()

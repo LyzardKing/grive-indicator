@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 Notify.init(__name__)
 autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
 griveignore_init = "# Set rules For selective sync.\n"\
-                   "# Check the man page or"\
-                   "https://github.com/vitalif/grive2#griveignore."
+                   "# Check the man page or\n"\
+                   "# https://github.com/vitalif/grive2#griveignore."
 LOCK = False
 
 
@@ -105,7 +105,7 @@ def _runAuth(folder):
         if 'Please input the authentication code' in txt:
             break
     url = re.search('https.*googleusercontent.com', txt).group(0)
-    subprocess.Popen(['xdg-open', url])
+    Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
     response = EntryDialog.main(parent=None, title='Warning', label='Insert the Auth Code')
     logger.debug(response)
     auth.stdin.write(response.encode())
