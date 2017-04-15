@@ -20,7 +20,7 @@ def run_test(tests):
             suite = loader.loadTestsFromName(test)
             tests.append(suite)
     else:
-        print('No test selected. Testing pep8 by default')
+        print('No test selected. Testing pep8/flake8 by default')
         suite = loader.loadTestsFromName('tests')
         tests.append(suite)
 
