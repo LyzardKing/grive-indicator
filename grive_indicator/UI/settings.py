@@ -11,7 +11,6 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from contextlib import suppress
 import logging
-import subprocess
 from ..tools import getIcon, Config, ind, root_dir, autostart_file, griveignore_init
 from ..UI import CSDWindow
 

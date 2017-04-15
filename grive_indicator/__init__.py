@@ -4,29 +4,16 @@
 import gi
 import argparse
 import os
-import shutil
 import subprocess
-import signal
-import sys
-import site
 import re
-from concurrent import futures
 import logging
-from time import sleep
+from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import Gio
-from gi.repository import AppIndicator3
-from gi.repository import GLib
-from pathlib import Path
+from gi.repository import Gtk, Gdk, Gio, GLib
 from datetime import datetime
-from multiprocessing import Process
-from subprocess import CalledProcessError
-from contextlib import suppress
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import getIcon, root_dir, ind, Config, config_file, is_connected, runConfigure
+from grive_indicator.tools import ind, Config, config_file, is_connected, runConfigure
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -34,21 +21,26 @@ logger = logging.getLogger(__name__)
 # Singleton
 app = Gio.Application(application_id="foo.bar", flags=Gio.ApplicationFlags.FLAGS_NONE)
 
+
 def on_startup(instance):
     GriveIndicator()
+
 
 def on_activate(instance):
     pass
 
+
 app.connect('startup', on_startup)
 app.connect('activate', on_activate)
+
 
 class GriveIndicator():
 
     def __init__(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
-        parser.add_argument('--selective', '-s', action='store', help='comma separated list of (regex) files to not sync')
+        parser.add_argument('--selective', '-s', action='store',
+                            help='comma separated list of (regex) files to not sync')
         # TODO: Add auth parameter
         args = parser.parse_args()
         folder = args.folder

@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import gi
-import re
-import shutil
-import site
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-import subprocess
 import logging
 from ..tools import runConfigure, griveignore_init
 from ..UI import InfoDialog, CSDWindow

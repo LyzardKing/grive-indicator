@@ -2,13 +2,11 @@
 
 import os
 import pep8
-import grive_indicator
-from pathlib import Path
-from grive_indicator import root_dir
 import unittest
 
 
 class CodeCheck(unittest.TestCase):
+
     def test_pep8(self):
         """Proceed a pep8 checking
 
@@ -21,6 +19,7 @@ class CodeCheck(unittest.TestCase):
         dir_grive_indicator = os.path.dirname(os.path.join(config_folder, 'drive_indicator'))
         results = pep8style.check_files([dir_grive_indicator, os.path.join(config_folder, "bin")])
         self.assertEqual(results.get_statistics(), [])
+
 
 if __name__ == '__main__':
     unittest.main()

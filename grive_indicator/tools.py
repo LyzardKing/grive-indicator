@@ -11,11 +11,9 @@ import configparser
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, GLib, Notify, GdkPixbuf
+from gi.repository import Gtk, GLib, Notify, GdkPixbuf, Gdk
 from gi.repository import AppIndicator3
 from .UI import InfoDialog, EntryDialog
-from time import sleep
-import threading
 import shutil
 import re
 
@@ -28,7 +26,6 @@ autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-in
 griveignore_init = "# Set rules For selective sync.\n"\
                    "# Check the man page or\n"\
                    "# https://github.com/vitalif/grive2#griveignore."
-LOCK = False
 
 
 class Config:
@@ -36,7 +33,7 @@ class Config:
     def __init__(self):
         self.config = configparser.ConfigParser()
 
-    def config():
+    def config(self):
         return self.config
 
     def getValue(self, key):
@@ -75,7 +72,6 @@ def runConfigure(folder, selective=None):
                                    label='The  is not currently registered with grive. Do you want to proceed?')
         if response == Gtk.ResponseType.OK:
             logger.debug('Confirm auth')
-            LOCK = True
             # Authenticate with Google Drive
             runAuth(folder)
 
@@ -93,7 +89,6 @@ def _runConfigure(folder, selective=None):
 
 
 def runAuth(folder):
-    LOCK = True
     _runAuth(folder)
 
 
@@ -114,7 +109,6 @@ def _runAuth(folder):
     logger.debug(response)
     auth.stdin.write(response.encode())
     auth.stdin.flush()
-    LOCK = False
 
 
 def getAlertIcon():
@@ -133,6 +127,7 @@ def getIcon():
         return icon
     else:
         return style
+
 
 ind = AppIndicator3.Indicator.new("Grive Indicator", getIcon(),
                                   AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
