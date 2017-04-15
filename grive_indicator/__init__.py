@@ -38,7 +38,7 @@ def on_startup(instance):
     GriveIndicator()
 
 def on_activate(instance):
-    logger.debug('Grive Indicator is running')
+    pass
 
 app.connect('startup', on_startup)
 app.connect('activate', on_activate)
@@ -53,10 +53,6 @@ class GriveIndicator():
         args = parser.parse_args()
         folder = args.folder
         selective = args.selective
-
-        if not shutil.which('grive'):
-            print('Missing grive executable in PATH.')
-            exit(1)
 
         self.menu_setup()
         ind.set_menu(self.menu)
@@ -135,6 +131,9 @@ class GriveIndicator():
             subprocess.check_call(grive_cmd, cwd=folder)
             self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)
+        except OSError:
+            logger.error('Missing grive in PATH')
+            Gtk.main_quit()
         except:
             logger.error('Error occurred running grive. Skipping sync.')
             pass
@@ -150,8 +149,9 @@ class GriveIndicator():
 
     def Quit(self, widget):
         if self.future.running():
-            response = UI.InfoDialog.main(parent=None, title='Warning',
-                                          label='Grive is currently syncing. Please wait a moment.')
+            response = InfoDialog.main(parent=None,
+                                       title='Warning',
+                                       label='Grive is currently syncing. Please wait a moment.')
             if response == Gtk.ResponseType.OK:
                 logger.debug('Finishing sync.')
         Gtk.main_quit()
