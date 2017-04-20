@@ -34,6 +34,7 @@ class Config:
         self.config = configparser.ConfigParser()
 
     def config(self):
+        self.config.read(config_file)
         return self.config
 
     def getValue(self, key):
@@ -41,6 +42,7 @@ class Config:
         return self.config['DEFAULT'][key]
 
     def setValue(self, key, value):
+        logger.debug('{} {}'.format(key, value))
         self.config.read(config_file)
         self.config['DEFAULT'][key] = value
         with open(config_file, 'w') as configfile:
