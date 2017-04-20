@@ -13,26 +13,23 @@ class CodeCheck(unittest.TestCase):
     def test_pep8(self):
         """Proceed a pep8 checking
 
-        Note that we have a .pep8 config file for maximum line length tweak
-        and excluding the virtualenv dir."""
+        Note that we have a .pep8 config file for maximum line length tweak,
+        excluding E402 and tmp files."""
         pep8style = pep8.StyleGuide(config_file=os.path.join(config_folder, '.pep8'))
 
-        # we want to use either local or system umake, but always local tests files
-        dir_grive_indicator = os.path.dirname(os.path.join(config_folder, 'drive_indicator'))
-        results = pep8style.check_files([dir_grive_indicator, os.path.join(config_folder, "bin")])
+        # we want to use either local or system grive_indicator, but always local tests files
+        results = pep8style.check_files([config_folder, os.path.join(config_folder, "bin")])
         self.assertEqual(results.get_statistics(), [])
 
     def test_flake8(self):
         """Proceed a flake8 checking
 
-        Pass the options directly until the api can read .flake8."""
-        style_guide = flake8.get_style_guide(ignore=['E402'],
-                                             max_line_length=120,
-                                             exclude=['build/'])
+        Note that we have a .flake8 config file for maximum line length tweak,
+        excluding E402 and tmp files."""
+        style_guide = flake8.get_style_guide()
 
-        # we want to use either local or system umake, but always local tests files
-        dir_grive_indicator = os.path.dirname(os.path.join(config_folder, 'drive_indicator'))
-        results = style_guide.check_files([dir_grive_indicator, os.path.join(config_folder, "bin")])
+        # we want to use either local or system grive_indicator, but always local tests files
+        results = style_guide.check_files([config_folder, os.path.join(config_folder, "bin")])
         self.assertEqual(results.get_statistics('E'), [])
 
 
