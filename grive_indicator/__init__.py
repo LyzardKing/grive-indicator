@@ -10,11 +10,11 @@ import logging
 from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import Gtk, Gdk, Gio, GLib, GdkPixbuf
+from gi.repository import Gtk, Gdk, Gio, GLib
 from datetime import datetime
 from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import ind, Config, config_file,\
-    is_connected, runConfigure, getAlertIcon, show_notify
+    is_connected, runConfigure, show_notify
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -123,9 +123,10 @@ class GriveIndicator():
             grive_cmd.append('--download-speed {}'.format(download_speed))
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            result = subprocess.Popen(grive_cmd, cwd=folder,
-                                             stderr=subprocess.STDOUT,
-                                             stdout=subprocess.PIPE)
+            result = subprocess.Popen(grive_cmd,
+                                      cwd=folder,
+                                      stderr=subprocess.STDOUT,
+                                      stdout=subprocess.PIPE)
             # if Config().getValue('show_notifications') == 'True':
             notify = Config().getValue('show_notifications')
             if notify.lower() == 'true':

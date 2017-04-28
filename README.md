@@ -1,7 +1,7 @@
 grive-indicator
 ===============
 
-Indicator applet for Ubuntu to synchronize Google Drive
+Linux Gtk indicator to sync Google Drive via Grive
 =======
 A very simple and lightweight indicator applet to synchronize with Google Drive using grive.
 
@@ -26,3 +26,5 @@ ToDo
 ===============
 
 1. Add sync based on inotifywait (e.g. using a command like: inotifywait -r -e modify,attrib,moved_to,moved_from,move_self,create,delete,delete_self "$HOME/Google Drive")
+
+The icons are copyright © Sam Hewitt, from the Paper Icons theme, available under the terms of the CC-BY-SA-4.0 license.

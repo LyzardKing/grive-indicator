@@ -2,9 +2,10 @@
 Version=1.0
 Type=Application
 Name=Grive Indicator
-Exec=root_dir/grive-indicator
+Exec=grive-indicator
 Comment=Simple indicator applet to synchronize Google Drive contents
 Icon=web-google-drive
+Categories=Network;FileTransfer;
 Terminal=false
 StartupNotify=false
 X-GNOME-Autostart-enabled=true

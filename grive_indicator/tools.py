@@ -138,6 +138,7 @@ def show_notify(line):
     notification.set_icon_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(getAlertIcon()))
     notification.show()
 
+
 ind = AppIndicator3.Indicator.new("Grive Indicator", getIcon(),
                                   AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
 ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
