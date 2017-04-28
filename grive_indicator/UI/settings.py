@@ -42,6 +42,7 @@ class SettingsWindow(CSDWindow):
         warning_notification = Gtk.Label()
         warning_notification.set_markup("<b>Warning: Could cause issues if syncing\n"
                                         "a large number of files (eg. first sync).</b>")
+        warning_notification.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.000, 1.000, 0.000, 1.0))
         notification_switch = Gtk.Switch()
         notification_switch.set_active(conf.config['DEFAULT'].getboolean('show_notifications'))
         notification_switch.connect('notify::active', self.on_notification_activate)
@@ -63,6 +64,10 @@ class SettingsWindow(CSDWindow):
         confirm_button.connect('clicked',
                                self.confirmSettings)
 
+        cancel_button = Gtk.Button('Cancel')
+        cancel_button.connect('clicked',
+                              self.close_window)
+
         self.grid.add(label_timer)
         self.grid.attach(self.timer_entry, 1, 0, 2, 1)
         self.grid.attach_next_to(label_theme, label_timer, Gtk.PositionType.BOTTOM, 1, 1)
@@ -78,6 +83,7 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(edit_ignore, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(confirm_button, edit_ignore, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(cancel_button, confirm_button, Gtk.PositionType.LEFT, 1, 1)
 
     def open_griveignore(self, gparam):
         griveignore = os.path.join(Config().getValue('folder'), '.griveignore')
@@ -105,6 +111,9 @@ class SettingsWindow(CSDWindow):
 
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
+
+    def close_window(self, widget):
+        self.destroy()
 
     def confirmSettings(self, widget):
         logger.debug('Set timer, up, down to %s, %s, %s' % (self.timer_entry.get_text(),
@@ -143,10 +152,10 @@ def enableStartup(is_active):
             with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
                                    'grive-indicator.desktop'), 'r') as f:
                 txt = f.read()
-                print(root_dir)
                 if os.path.dirname(root_dir) in site.getsitepackages():
                     txt = re.sub(r"root_dir/", '', txt)
                 else:
+                    # Not an install, we keep the local version you're using
                     txt = re.sub(r"root_dir/", '{}/'.format(os.path.join(os.path.dirname(root_dir), 'bin')), txt)
             with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
                                    'grive-indicator.desktop'), 'w') as f:
@@ -158,7 +167,6 @@ def enableStartup(is_active):
 
 def setDarkTheme():
     Config().setValue("style", "dark")
-
     ind.set_icon_full(os.path.join(root_dir, "data", getIcon()), "grive-indicator-dark")
 
 

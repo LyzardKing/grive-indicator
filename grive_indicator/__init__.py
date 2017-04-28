@@ -16,27 +16,26 @@ from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import ind, Config, config_file,\
     is_connected, runConfigure, show_notify
 
-logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
-
-app = Gio.Application(application_id="org.app.grive_indicator", flags=Gio.ApplicationFlags.FLAGS_NONE)
-
-
-def on_startup(instance):
-    GriveIndicator()
-
-
-def on_activate(instance):
-    pass
-
-
-app.connect('startup', on_startup)
-app.connect('activate', on_activate)
 
 
 class GriveIndicator():
 
     def __init__(self):
+        self.app = Gtk.Application(application_id="org.app.grive_indicator", flags=Gio.ApplicationFlags.FLAGS_NONE)
+
+        def on_startup(instance):
+            self.main()
+
+        def on_activate(instance):
+            pass
+
+        self.app.connect('startup', on_startup)
+        self.app.connect('activate', on_activate)
+
+
+    def main(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
         parser.add_argument('--selective', '-s', action='store',
@@ -126,18 +125,17 @@ class GriveIndicator():
                                       cwd=folder,
                                       stderr=subprocess.STDOUT,
                                       stdout=subprocess.PIPE)
-            # if Config().getValue('show_notifications') == 'True':
             notify = Config().getValue('show_notifications')
             if notify.lower() == 'true':
                 notify = True
             else:
                 notify = False
-            for line in result.stdout:
-                line = line.decode()
+            for grive_out_line in result.stdout:
+                grive_out_line = grive_out_line.decode()
                 if notify:
-                    if line.startswith('sync'):
-                        show_notify(line)
-                logger.debug(line)
+                    if grive_out_line.startswith('sync'):
+                        show_notify(grive_out_line)
+                logger.debug(grive_out_line)
             logger.debug('Finished sync')
             self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)
@@ -168,4 +166,5 @@ class GriveIndicator():
 
 
 def main():
-    app.run()
+    gind = GriveIndicator()
+    gind.app.run()

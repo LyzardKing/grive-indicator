@@ -42,7 +42,7 @@ class Config:
         return self.config['DEFAULT'][key]
 
     def setValue(self, key, value):
-        logger.debug('{} {}'.format(key, value))
+        logger.debug('Set config {} to {}'.format(key, value))
         self.config.read(config_file)
         self.config['DEFAULT'][key] = value
         with open(config_file, 'w') as configfile:
@@ -107,9 +107,9 @@ def _runAuth(folder):
             break
     url = re.search('https.*googleusercontent.com', txt).group(0)
     Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
-    response = EntryDialog.main(parent=None, title='Warning', label='Insert the Auth Code')
-    logger.debug(response)
-    auth.stdin.write(response.encode())
+    auth_response = EntryDialog.main(parent=None, title='Warning', label='Insert the Auth Code')
+    logger.debug(auth_response)
+    auth.stdin.write(auth_response.encode())
     auth.stdin.flush()
 
 
@@ -120,7 +120,6 @@ def getAlertIcon():
 def getIcon():
     try:
         style = Config().getValue('style')
-        logger.debug('Style: %s.' % style)
     except Exception as e:
         logger.error(e)
         style = 'dark'

@@ -12,17 +12,18 @@ confinement: strict
 
 apps:
   grive-indicator:
-    command: grive-indicator
+    command: desktop-launch grive-indicator
     plugs:
       - home
       - network
       - unity7
+      - session-dbus
 
-slots:
+plugs:
   session-dbus:
     interface: dbus
-    name: org.example.grive_indicator
-    bus: session    
+    name: org.app.grive_indicator
+    bus: session
 
 parts:
   grive-indicator:
@@ -39,7 +40,7 @@ parts:
       - gir1.2-appindicator3-0.1
       - gir1.2-notify-0.7
       - libnotify4
-    after: [indicator-gtk3]
+    after: [desktop-gtk3]
   grive:
     source: https://github.com/vitalif/grive2.git
     plugin: cmake
