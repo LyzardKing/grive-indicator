@@ -10,11 +10,11 @@ import logging
 from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, Gdk, Gio, GLib, Notify, GdkPixbuf
+from gi.repository import Gtk, Gdk, Gio, GLib, GdkPixbuf
 from datetime import datetime
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import ind, Config, config_file, is_connected, runConfigure, getAlertIcon
+from grive_indicator.tools import ind, Config, config_file,\
+    is_connected, runConfigure, getAlertIcon, show_notify
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -136,11 +136,7 @@ class GriveIndicator():
                 line = line.decode()
                 if notify:
                     if line.startswith('sync'):
-                        key = line.split('"')[2]
-                        value = line.split('"')[1]
-                        notification = Notify.Notification.new('{} {}'.format(key.capitalize(), value))
-                        notification.set_icon_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(getAlertIcon()))
-                        notification.show()
+                        show_notify(line)
                 logger.debug(line)
             logger.debug('Finished sync')
             self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
