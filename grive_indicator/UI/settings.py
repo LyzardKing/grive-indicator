@@ -38,6 +38,11 @@ class SettingsWindow(CSDWindow):
         startup_swith.set_active(os.path.isfile(autostart_file))
         startup_swith.connect('notify::active', self.on_startup_active)
 
+        label_notification = Gtk.Label("Enable Notifications")
+        notification_switch = Gtk.Switch()
+        notification_switch.set_active(conf.config['DEFAULT'].getboolean('show_notifications'))
+        notification_switch.connect('notify::active', self.on_notification_activate)
+
         label_up_speed = Gtk.Label("Limit Upload Speed")
         self.upload_speed = Gtk.Entry()
         tmp = conf.getValue('upload_speed')
@@ -61,7 +66,9 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(theme_swith, label_theme, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_startup, label_theme, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(label_up_speed, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(label_notification, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(notification_switch, label_notification, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_up_speed, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
@@ -82,6 +89,9 @@ class SettingsWindow(CSDWindow):
 
     def on_log_activate(self, switch, gparam):
         Config().setValue('log', switch.get_active())
+
+    def on_notification_activate(self, switch, gparam):
+        Config().setValue('show_notifications', str(switch.get_active()))
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():

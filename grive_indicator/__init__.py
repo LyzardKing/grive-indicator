@@ -10,10 +10,11 @@ import logging
 from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import Gtk, Gdk, Gio, GLib
+from gi.repository import Gtk, Gdk, Gio, GLib, GdkPixbuf
 from datetime import datetime
 from grive_indicator.UI import settings, configure, InfoDialog
-from grive_indicator.tools import ind, Config, config_file, is_connected, runConfigure
+from grive_indicator.tools import ind, Config, config_file,\
+    is_connected, runConfigure, getAlertIcon, show_notify
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -112,6 +113,8 @@ class GriveIndicator():
         self.lastSync_item.set_label('Syncing...')
         folder = Config().getValue('folder')
         grive_cmd = ['grive']
+        # Uncomment the following line if testing.
+        # grive_cmd.append('--dry-run')
         upload_speed = Config().getValue('upload_speed')
         if upload_speed != '':
             grive_cmd.append('--upload-speed {}'.format(upload_speed))
@@ -120,14 +123,29 @@ class GriveIndicator():
             grive_cmd.append('--download-speed {}'.format(download_speed))
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            subprocess.check_call(grive_cmd, cwd=folder)
+            result = subprocess.Popen(grive_cmd, cwd=folder,
+                                             stderr=subprocess.STDOUT,
+                                             stdout=subprocess.PIPE)
+            # if Config().getValue('show_notifications') == 'True':
+            notify = Config().getValue('show_notifications')
+            if notify.lower() == 'true':
+                notify = True
+            else:
+                notify = False
+            for line in result.stdout:
+                line = line.decode()
+                if notify:
+                    if line.startswith('sync'):
+                        show_notify(line)
+                logger.debug(line)
+            logger.debug('Finished sync')
             self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)
         except OSError:
             logger.error('Missing grive in PATH')
             Gtk.main_quit()
-        except:
-            logger.error('Error occurred running grive. Skipping sync.')
+        except Exception as e:
+            logger.error('Error occurred running grive. Skipping sync: %s' % e)
             pass
 
     def openRemote(self, widget):

@@ -34,6 +34,7 @@ class Config:
         self.config = configparser.ConfigParser()
 
     def config(self):
+        self.config.read(config_file)
         return self.config
 
     def getValue(self, key):
@@ -41,6 +42,7 @@ class Config:
         return self.config['DEFAULT'][key]
 
     def setValue(self, key, value):
+        logger.debug('{} {}'.format(key, value))
         self.config.read(config_file)
         self.config['DEFAULT'][key] = value
         with open(config_file, 'w') as configfile:
@@ -128,6 +130,13 @@ def getIcon():
     else:
         return style
 
+
+def show_notify(line):
+    key = line.split('"')[2]
+    value = line.split('"')[1]
+    notification = Notify.Notification.new('{} {}'.format(key.capitalize(), value))
+    notification.set_icon_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(getAlertIcon()))
+    notification.show()
 
 ind = AppIndicator3.Indicator.new("Grive Indicator", getIcon(),
                                   AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
