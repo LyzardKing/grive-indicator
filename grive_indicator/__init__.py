@@ -19,8 +19,7 @@ from grive_indicator.tools import ind, Config, config_file,\
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# Singleton
-app = Gio.Application(application_id="foo.bar", flags=Gio.ApplicationFlags.FLAGS_NONE)
+app = Gio.Application(application_id="org.app.grive_indicator", flags=Gio.ApplicationFlags.FLAGS_NONE)
 
 
 def on_startup(instance):

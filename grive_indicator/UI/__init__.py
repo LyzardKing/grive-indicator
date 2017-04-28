@@ -22,9 +22,7 @@ class CSDWindow(Gtk.Window):
         hb.props.title = title
         self.set_titlebar(hb)
 
-        self.set_border_width(6)
-
-        self.grid = Gtk.Grid()
+        self.grid = Gtk.Grid(column_spacing=2,row_spacing=2)
         self.add(self.grid)
 
 

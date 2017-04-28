@@ -39,6 +39,9 @@ class SettingsWindow(CSDWindow):
         startup_swith.connect('notify::active', self.on_startup_active)
 
         label_notification = Gtk.Label("Enable Notifications")
+        warning_notification = Gtk.Label()
+        warning_notification.set_markup("<b>Warning: Could cause issues if syncing\n"
+                                        "a large number of files (eg. first sync).</b>")
         notification_switch = Gtk.Switch()
         notification_switch.set_active(conf.config['DEFAULT'].getboolean('show_notifications'))
         notification_switch.connect('notify::active', self.on_notification_activate)
@@ -68,7 +71,8 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_notification, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(notification_switch, label_notification, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(label_up_speed, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(warning_notification, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(label_up_speed, warning_notification, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
