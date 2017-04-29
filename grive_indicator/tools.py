@@ -114,7 +114,7 @@ def _runAuth(folder):
 
 
 def getAlertIcon():
-    return os.path.join(root_dir, "data", 'drive-dark.png')
+    return os.path.join(root_dir, "data", 'drive-dark.svg')
 
 
 def getIcon():
@@ -124,7 +124,7 @@ def getIcon():
         logger.error(e)
         style = 'dark'
     if style == 'light' or style == 'dark':
-        icon = os.path.join(root_dir, "data", 'drive-' + style + '.png')
+        icon = os.path.join(root_dir, "data", 'drive-' + style + '.svg')
         return icon
     else:
         return style
