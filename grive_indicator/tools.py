@@ -25,7 +25,7 @@ Notify.init(__name__)
 autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
 griveignore_init = "# Set rules For selective sync.\n"\
                    "# Check the man page or\n"\
-                   "# https://github.com/vitalif/grive2#griveignore."
+                   "# https://github.com/vitalif/grive2#griveignore"
 
 
 class Config:

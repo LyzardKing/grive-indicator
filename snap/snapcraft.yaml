@@ -10,28 +10,26 @@ description: |
 grade: stable
 confinement: strict
 
+slots:
+  grive-indicator-dbus:
+    interface: dbus
+    name: org.app.grive_indicator
+    bus: session
+
 apps:
   grive-indicator:
     command: desktop-launch grive-indicator
+    desktop: usr/share/applications/grive-indicator.desktop
     plugs:
       - home
       - network
       - unity7
-      - session-dbus
-
-plugs:
-  session-dbus:
-    interface: dbus
-    name: org.app.grive_indicator
-    bus: session
 
 parts:
   grive-indicator:
     source: .
     plugin: python
     python-version: python3
-    build-packages:
-      - python3-setuptools
     stage-packages:
       - python3-gi
       - python3-dbus
@@ -40,7 +38,10 @@ parts:
       - gir1.2-appindicator3-0.1
       - gir1.2-notify-0.7
       - libnotify4
+      - gnome-themes-standard
     after: [desktop-gtk3]
+    prepare:
+      sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
   grive:
     source: https://github.com/vitalif/grive2.git
     plugin: cmake

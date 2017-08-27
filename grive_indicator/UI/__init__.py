@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class CSDWindow(Gtk.Window):
+class CSDWindow(Gtk.Application):
 
     def __init__(self, title):
         Gtk.Window.__init__(self, title=title)
