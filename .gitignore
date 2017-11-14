@@ -11,7 +11,7 @@ dist/
 # Log used by setup.py
 installed.log
 
-# Debian 
+# Debian
 debian/debhelper-build-stamp
 debian/grive-indicator/
 debian/grive-indicator.debhelper.log
@@ -19,3 +19,10 @@ debian/grive-indicator.postinst.debhelper
 debian/grive-indicator.prerm.debhelper
 debian/grive-indicator.substvars
 debian/files
+
+# Snap
+parts/
+stage/
+prime/
+*.snap
+*.tar.bz2

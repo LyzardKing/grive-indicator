@@ -1,0 +1,5 @@
+setuptools
+requests
+pep8
+flake8
+pexpect

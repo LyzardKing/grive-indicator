@@ -1,5 +1,7 @@
 grive-indicator
 ===============
+![Build Status](https://api.travis-ci.org/LyzardKing/grive-indicator.svg?branch=master)
+
 
 Linux Gtk indicator to sync Google Drive via Grive
 =======
