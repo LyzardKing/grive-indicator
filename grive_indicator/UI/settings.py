@@ -32,8 +32,10 @@ logger = logging.getLogger(__name__)
 
 class SettingsWindow(CSDWindow):
 
-    def __init__(self):
+    def __init__(self, debug):
         super().__init__(title='Settings')
+
+        self.debug = debug
 
         conf = Config()
         label_timer = Gtk.Label("Sync timer")
@@ -129,6 +131,11 @@ class SettingsWindow(CSDWindow):
         self.destroy()
 
     def confirmSettings(self, widget):
+        # Do not save in debug mode
+        if self.debug:
+            self.destroy()
+            return
+
         logger.debug('Set timer, up, down to %s, %s, %s' % (self.timer_entry.get_text(),
                                                             self.upload_speed.get_text(),
                                                             self.download_speed.get_text()))

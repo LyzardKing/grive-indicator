@@ -21,6 +21,7 @@ import os
 import subprocess
 import re
 import logging
+import signal
 from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
@@ -28,25 +29,17 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 from datetime import datetime
 from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import ind, Config, config_file,\
-    is_connected, runConfigure, show_notify
+    is_connected, runConfigure, show_notify, Singleton
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
-class GriveIndicator():
+class GriveIndicator(metaclass=Singleton):
 
     def __init__(self):
-        self.app = Gtk.Application(application_id="org.app.grive_indicator", flags=Gio.ApplicationFlags.FLAGS_NONE)
-
-        def on_startup(instance):
-            self.main()
-
-        def on_activate(instance):
-            pass
-
-        self.app.connect('startup', on_startup)
-        self.app.connect('activate', on_activate)
+        self.app = Gtk.Application(application_id="org.app.grive_indicator",
+                                   flags=Gio.ApplicationFlags.FLAGS_NONE)
 
 
     def main(self):
@@ -54,10 +47,12 @@ class GriveIndicator():
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
         parser.add_argument('--selective', '-s', action='store',
                             help='comma separated list of (regex) files to not sync')
+        parser.add_argument('--debug', action='store_true', help='Debug mode without grive')
         # TODO: Add auth parameter
         args = parser.parse_args()
         folder = args.folder
         selective = args.selective
+        self.debug = args.debug
 
         self.menu_setup()
         ind.set_menu(self.menu)
@@ -133,6 +128,11 @@ class GriveIndicator():
         download_speed = Config().getValue('download_speed')
         if download_speed != '':
             grive_cmd.append('--download-speed {}'.format(download_speed))
+        # Debug UI
+        if self.debug:
+            logger.setLevel('DEBUG')
+            logger.debug('Running in debug mode')
+            return
         try:
             logger.debug('Running: {}'.format(grive_cmd))
             result = subprocess.Popen(grive_cmd,
@@ -155,7 +155,8 @@ class GriveIndicator():
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)
         except OSError:
             logger.error('Missing grive in PATH')
-            Gtk.main_quit()
+            #Gtk.main_quit()
+            pass
         except Exception as e:
             logger.error('Error occurred running grive. Skipping sync: %s' % e)
             pass
@@ -167,9 +168,9 @@ class GriveIndicator():
         Gtk.show_uri(None, "file://{}".format(Config().getValue('folder')), Gdk.CURRENT_TIME)
 
     def settings(self, widget):
-        settings.main()
+        settings.main(self.debug)
 
-    def Quit(self, widget):
+    def Quit(self, widget=None):
         if self.future.running():
             response = InfoDialog.main(parent=None,
                                        title='Warning',
@@ -180,5 +181,8 @@ class GriveIndicator():
 
 
 def main():
+    # Glib steals the SIGINT handler and so, causes issue in the callback
+    # https://bugzilla.gnome.org/show_bug.cgi?id=622084
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     gind = GriveIndicator()
     gind.app.run()
