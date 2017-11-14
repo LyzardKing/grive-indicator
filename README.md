@@ -22,7 +22,7 @@ Installation
 
 Tests
 ===============
-Successfully tested under: Ubuntu 16.10 (Mate)
+Run ./runtests. At the moment only pep8 can run.
 
 ToDo
 ===============
