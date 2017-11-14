@@ -35,13 +35,14 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
-class GriveIndicator(metaclass=Singleton):
+class GriveIndicator(Gtk.Application):
 
     def __init__(self):
-        self.app = Gtk.Application(application_id="org.app.grive_indicator",
-                                   flags=Gio.ApplicationFlags.FLAGS_NONE)
+        Gtk.Application.__init__(self,
+                                 application_id="org.app.grive_indicator",
+                                 flags=Gio.ApplicationFlags.FLAGS_NONE)
 
-    def main(self):
+    def do_activate(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
         parser.add_argument('--selective', '-s', action='store',
@@ -183,5 +184,5 @@ def main():
     # Glib steals the SIGINT handler and so, causes issue in the callback
     # https://bugzilla.gnome.org/show_bug.cgi?id=622084
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    gind = GriveIndicator()
-    gind.app.run()
+    app = GriveIndicator()
+    app.run()

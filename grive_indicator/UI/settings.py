@@ -195,6 +195,6 @@ def setLightTheme():
     ind.set_icon_full(os.path.join(root_dir, "data", getIcon()), "grive-indicator-light")
 
 
-def main():
-    window = SettingsWindow()
+def main(debug):
+    window = SettingsWindow(debug)
     window.show_all()
