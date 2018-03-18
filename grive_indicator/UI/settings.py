@@ -54,10 +54,6 @@ class SettingsWindow(CSDWindow):
         startup_swith.connect('notify::active', self.on_startup_active)
 
         label_notification = Gtk.Label("Enable Notifications")
-        warning_notification = Gtk.Label()
-        warning_notification.set_markup("<b>Warning: Could cause issues if syncing\n"
-                                        "a large number of files (eg. first sync).</b>")
-        warning_notification.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(1.000, 1.000, 0.000, 1.0))
         notification_switch = Gtk.Switch()
         notification_switch.set_active(conf.config['DEFAULT'].getboolean('show_notifications'))
         notification_switch.connect('notify::active', self.on_notification_activate)
@@ -91,8 +87,7 @@ class SettingsWindow(CSDWindow):
         self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_notification, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(notification_switch, label_notification, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(warning_notification, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
-        self.grid.attach_next_to(label_up_speed, warning_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(label_up_speed, notification_switch, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
@@ -116,7 +111,20 @@ class SettingsWindow(CSDWindow):
         Config().setValue('log', switch.get_active())
 
     def on_notification_activate(self, switch, gparam):
-        Config().setValue('show_notifications', str(switch.get_active()))
+        if switch.get_active():
+            dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
+                                       Gtk.ButtonsType.YES_NO,
+                                       "Could cause issues when syncing a large number of files."
+                                       "Do you want to enable it?")
+            response = dialog.run()
+            if response == Gtk.ResponseType.NO:
+                Config().setValue('show_notifications', str(False))
+                switch.set_active(False)
+            if response == Gtk.ResponseType.YES:
+                Config().setValue('show_notifications', str(True))
+            dialog.destroy()
+        else:
+            Config().setValue('show_notifications', str(False))
 
     def on_dark_theme_activate(self, switch, gparam):
         if switch.get_active():
