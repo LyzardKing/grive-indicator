@@ -1,32 +1,66 @@
-grive-indicator
-===============
+# Grive Indicator
+
 ![Build Status](https://api.travis-ci.org/LyzardKing/grive-indicator.svg?branch=master)
 
 
-Linux Gtk indicator to sync Google Drive via Grive
-=======
+# Linux Gtk indicator to sync Google Drive via Grive
+
 A very simple and lightweight indicator applet to synchronize with Google Drive using grive.
 
 Works with "selective sync". You can specify one folder to sync (only one). That is permanent and cannot be changed.
 
-Prerequisites
-===============
+# Install
 
-1. Install "grive", "python-appindicator"
-2. If using for the first time, magic happens ;). (It will run grive -a, open a webpage and ask for the code, parsing the cli grive)
+ ## Dependencies
 
-Installation
-===============
+- grive (https://github.com/vitalif/grive2)
+- python3-gi
+- python3-requests
+- gir1.2-appindicator3-0.1
+- gir1.2-gtk-3.0
 
-"grive-indicator" at the moment can be started manually, or added to the startup applications via the menu.
+## Ubuntu
 
-Tests
-===============
-Run ./runtests. At the moment only pep8 can run.
+On ubuntu run:
+```sh
+sudo apt install python3-gi python3-requests gir1.2-appindicator3-0.1
+```
 
-ToDo
-===============
+## Snap
 
-1. Add sync based on inotifywait (e.g. using a command like: inotifywait -r -e modify,attrib,moved_to,moved_from,move_self,create,delete,delete_self "$HOME/Google Drive")
+The snap can be built and installed via 
+```sh
+snapcraft cleanbuild
+snap install grive-indicator_master_amd64.snap --classic --dangerous
+```
 
+It will pull grive as well, so it can be installed also if it is unavailable in the host system.
+
+# Usage
+
+## First Run
+
+Select folder and .griveignore.
+
+It will run grive -a, open a webpage and ask for the code, parsing the cli.
+
+## Settings
+
+Change multiple settings from a simple ui:
+- A timer between sync intervals
+- The theme for the appindicator icon
+- Enable the program on startup
+- Enable notifications
+- Limit upload/download speeds
+- Open the griveignore file for editing
+
+[![settings_screenshot](settings.png)](settings.png)
+
+# Tests
+
+Run ./runtests in the project root.
+
+At the moment only pep8 settings are checked.
+
+----
 The icons are copyright © Sam Hewitt, from the Paper Icons theme, available under the terms of the CC-BY-SA-4.0 license.
