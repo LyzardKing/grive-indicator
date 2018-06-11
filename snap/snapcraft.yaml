@@ -10,12 +10,6 @@ description: |
 grade: stable
 confinement: strict
 
-slots:
-  grive-indicator-dbus:
-    interface: dbus
-    name: org.app.grive_indicator
-    bus: session
-
 apps:
   grive-indicator:
     command: desktop-launch grive-indicator
@@ -24,6 +18,19 @@ apps:
       - home
       - network
       - unity7
+      - desktop
+  grive:
+    command: desktop-launch grive
+    plugs:
+      - home
+      - network
+      - desktop
+
+slots:
+  grive-indicator-dbus:
+    interface: dbus
+    name: org.app.grive_indicator
+    bus: session
 
 parts:
   grive-indicator:
@@ -40,8 +47,9 @@ parts:
       - libnotify4
       - gnome-themes-standard
     after: [desktop-gtk3]
-    prepare:
-      sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
+    override-build: |
+     sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
+     snapcraftctl build
   grive:
     source: https://github.com/vitalif/grive2.git
     plugin: cmake
