@@ -66,25 +66,16 @@ class Config:
         notification.show()
 
 
-class Singleton(type):
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-
 def is_connected(url='https://drive.google.com/', timeout=10):
     try:
         r = requests.get(url=url, timeout=timeout)
-        if r.status_code != 200:
-            raise Exception
-    except:
-        logger.error('No internet connection available. Skipping sync.')
-        return False
-    return True
+        r.raise_for_status()
+        return True
+    except requests.HTTPError as e:
+        logger.error("HTTP error {0}.".format(e.response.status_code))
+    except requests.ConnectionError:
+        logger.error("No internet connection available.")
+    return False
 
 
 def runConfigure(folder, selective=None):

@@ -29,7 +29,7 @@ from gi.repository import Gtk, Gdk, Gio, GLib
 from datetime import datetime
 from grive_indicator.UI import settings, configure, InfoDialog
 from grive_indicator.tools import ind, Config, config_file,\
-    is_connected, runConfigure, show_notify, Singleton
+    is_connected, runConfigure, show_notify
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
