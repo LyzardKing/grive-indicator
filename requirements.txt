@@ -1,5 +1,8 @@
-setuptools
+# Runtime
 requests
+pycairo
+PyGObject
+
+# Dev
 pep8
-flake8
 pexpect
