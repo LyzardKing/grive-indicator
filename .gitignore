@@ -11,14 +11,12 @@ dist/
 # Log used by setup.py
 installed.log
 
+# Editor settings
+.idea/
+.vscode
+
 # Debian
-debian/debhelper-build-stamp
-debian/grive-indicator/
-debian/grive-indicator.debhelper.log
-debian/grive-indicator.postinst.debhelper
-debian/grive-indicator.prerm.debhelper
-debian/grive-indicator.substvars
-debian/files
+debian/
 
 # Snap
 parts/
