@@ -24,3 +24,12 @@ stage/
 prime/
 *.snap
 *.tar.bz2
+snap/.snapcraft/
+
+# virtualenv
+env/
+
+# builds
+build/
+*.egg-info
+*.pybuild
