@@ -16,17 +16,17 @@ TESTS_DIR = os.path.join(root_dir, 'tests')
 
 def run_test(tests):
     tests = []
-    # loader = unittest.TestLoader()
     if len(args.tests) > 0:
         for test_type in args.tests:
-            for named_test_type in ("pep8", "pyflakes"):
-                if test_type == named_test_type:
-                    args.tests.remove(named_test_type)
-                    if test_type == "pep8":
-                        tests.append(os.path.join(TESTS_DIR, "__init__.py"))
-                    elif test_type == "pyflakes":
-                        tests.append(os.path.join(TESTS_DIR, "test_style.py"))
-            if test_type in args.tests:
+            print(test_type)
+            if test_type in ("pep8", "pyflakes", "tools"):
+                if test_type == "pep8":
+                    tests.append(os.path.join(TESTS_DIR, "__init__.py"))
+                elif test_type == "pyflakes":
+                    tests.append(os.path.join(TESTS_DIR, "test_style.py"))
+                elif test_type == "tools":
+                    tests.append(os.path.join(TESTS_DIR, "test_tools.py"))
+            elif test_type in args.tests:
                 # Append the file if it exists
                 if os.path.exists(test_type):
                     tests.append(test_type)
@@ -37,7 +37,6 @@ def run_test(tests):
         print('No test selected. Run all the tests')
         tests.append(os.path.join(TESTS_DIR, "__init__.py"))
         tests.extend(glob(os.path.join(TESTS_DIR, "test_*.py")))
-
     pytest.main(args=tests)
 
 
