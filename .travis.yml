@@ -5,8 +5,8 @@ python:
   - "3.6"
 before_install:
   - sudo apt-get update
-  - sudo apt-get install python3-gi python3-setuptools python3-requests 
-  - sudo apt-get install python3-pexpect python3-pep8
+  - sudo apt-get install python3-gi 
+  - pip install -r requirements.txt
 install: "" # we don't want to use virtualenv (see below)
 # as we can't use a system virtualenv anymore in travis CI and that
 # python-gobject isn't installable in pypy, we have to use system libraries
