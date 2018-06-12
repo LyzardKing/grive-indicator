@@ -2,5 +2,6 @@
 requests
 
 # Dev
+pytest
 pyflakes
 pycodestyle
