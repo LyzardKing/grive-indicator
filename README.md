@@ -60,7 +60,7 @@ Change multiple settings from a simple ui:
 
 Run ./runtests in the project root.
 
-At the moment only pep8 settings are checked.
+At the moment only pycodestyle(pep8) settings are checked.
 
 ----
 The icons are copyright © Sam Hewitt, from the Paper Icons theme, available under the terms of the CC-BY-SA-4.0 license.
