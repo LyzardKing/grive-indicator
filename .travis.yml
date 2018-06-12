@@ -1,16 +1,17 @@
 language: python
-sudo: required
-dist: xenial
+dist: trusty
+sudo: false
+virtualenv:
+  system_site_packages: true
 python:
-  - "3.6"
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install python3-gi 
-  - pip install -r requirements.txt
-install: "" # we don't want to use virtualenv (see below)
-# as we can't use a system virtualenv anymore in travis CI and that
-# python-gobject isn't installable in pypy, we have to use system libraries
-# instead for both uncompiled and compiled modules.
-# The easiest way without hacking PYTHONPATH, PYTHONHOME is to use the system
-# python version by prepending it in the PATH.
+  - "3.4"
+addons:
+  apt:
+    packages:
+    - python3-gi
+    - python3-pep8
+    - python3-pexpect
+    - python3-pyflakes
+    - python3-requests
+install: ""
 script: PATH="/usr/bin:$PATH" ./runtests
