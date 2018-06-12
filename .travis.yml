@@ -1,8 +1,13 @@
 language: python
 dist: trusty
-sudo: false
+sudo: true
+virtualenv:
+  system_site_packages: true
 python:
-  - "3.6"
+  - "3.4"
+before_install:
+  - sudo apt update
+  - sudo apt install -y python3-pep8
 install:
   - pip install -r requirements.txt
 script: PATH="/usr/bin:$PATH" ./runtests tests.CodeCheck.test_pycodestyle
