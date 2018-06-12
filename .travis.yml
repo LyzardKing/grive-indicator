@@ -1,17 +1,14 @@
 language: python
 dist: trusty
-sudo: false
+sudo: true
 virtualenv:
   system_site_packages: true
 python:
-  - "3.4"
+  - "3.6"
 addons:
   apt:
     packages:
-    - python3-gi
     - python3-pep8
-    - python3-pexpect
-    - python3-pyflakes
-    - python3-requests
-install: ""
-script: PATH="/usr/bin:$PATH" ./runtests
+install:
+  - pip install -r requirements.txt
+script: PATH="/usr/bin:$PATH" ./runtests tests.CodeCheck.test_pycodestyle

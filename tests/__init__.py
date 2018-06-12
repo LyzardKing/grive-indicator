@@ -4,8 +4,6 @@ try:
     import pycodestyle
 except ImportError:
     import pep8 as pycodestyle
-import pyflakes
-from pyflakes import api
 import unittest
 
 config_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -28,7 +26,12 @@ class CodeCheck(unittest.TestCase):
         self.assertEqual(results.get_statistics(), [])
 
     def test_pyflakes(self):
-        """Proceed a pyflakes checking"""
+        """Proceed a pyflakes checking
+
+        Import pyflakes here so it doesn't conflict with the travis build"""
+
+        import pyflakes
+        from pyflakes import api
 
         # we want to use either local or system grive_indicator, but always local tests files
         reporter = pyflakes.reporter.Reporter(None, sys.stderr)
