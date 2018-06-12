@@ -2,7 +2,7 @@ import os
 import sys
 try:
     import pycodestyle
-except ModuleNotFoundError:
+except ImportError:
     import pep8 as pycodestyle
 import pyflakes
 from pyflakes import api
@@ -31,7 +31,7 @@ class CodeCheck(unittest.TestCase):
         """Proceed a pyflakes checking"""
 
         # we want to use either local or system grive_indicator, but always local tests files
-        reporter = pyflakes.reporter.Reporter(sys.stdout, sys.stderr)
+        reporter = pyflakes.reporter.Reporter(None, sys.stderr)
         results = api.checkRecursive(paths=folders, reporter=reporter)
         self.assertEqual(results, 0)
 
