@@ -1,9 +1,11 @@
 import os
+import sys
 try:
     import pycodestyle
 except ModuleNotFoundError:
     import pep8 as pycodestyle
-from flake8.api import legacy as flake8
+import pyflakes
+from pyflakes import api
 import unittest
 
 config_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -25,16 +27,13 @@ class CodeCheck(unittest.TestCase):
         results = style.check_files(folders)
         self.assertEqual(results.get_statistics(), [])
 
-    def test_flake8(self):
-        """Proceed a flake8 checking
-
-        Note that we have a .flake8 config file for maximum line length tweak,
-        excluding E402 and tmp files."""
-        style_guide = flake8.get_style_guide()
+    def test_pyflakes(self):
+        """Proceed a pyflakes checking"""
 
         # we want to use either local or system grive_indicator, but always local tests files
-        results = style_guide.check_files(folders)
-        self.assertEqual(results.get_statistics('E'), [])
+        reporter = pyflakes.reporter.Reporter(sys.stdout, sys.stderr)
+        results = api.checkRecursive(paths=folders, reporter=reporter)
+        self.assertEqual(results, 0)
 
 
 if __name__ == '__main__':
