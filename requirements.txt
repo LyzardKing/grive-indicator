@@ -4,4 +4,3 @@ requests
 # Dev
 pyflakes
 pycodestyle
-pexpect
