@@ -2,6 +2,6 @@
 requests
 
 # Dev
+pytest
 pyflakes
 pycodestyle
-pexpect
