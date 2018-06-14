@@ -132,24 +132,25 @@ class GriveIndicator(Gtk.Application):
         if self.debug:
             logger.setLevel('DEBUG')
             logger.debug('Running in debug mode')
-            return
+            logger.debug('Emulate sync, then update label')
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            result = subprocess.Popen(grive_cmd,
-                                      cwd=folder,
-                                      stderr=subprocess.STDOUT,
-                                      stdout=subprocess.PIPE)
+            if not self.debug:
+                result = subprocess.Popen(grive_cmd,
+                                        cwd=folder,
+                                        stderr=subprocess.STDOUT,
+                                        stdout=subprocess.PIPE)
             notify = Config().getValue('show_notifications')
             if notify.lower() == 'true':
                 notify = True
             else:
                 notify = False
-            for grive_out_line in result.stdout:
-                grive_out_line = grive_out_line.decode()
-                if notify:
-                    if grive_out_line.startswith('sync'):
-                        show_notify(grive_out_line)
-                logger.debug(grive_out_line)
+            if not self.debug:
+                for grive_out_line in result.stdout:
+                    grive_out_line = grive_out_line.decode()
+                    if notify:
+                        if grive_out_line.startswith('sync'):
+                            show_notify(grive_out_line)
             logger.debug('Finished sync')
             self.lastSync = re.split('T|\.', datetime.now().isoformat())[1]
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)

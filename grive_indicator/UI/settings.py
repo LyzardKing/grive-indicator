@@ -23,6 +23,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import Gdk
 from contextlib import suppress
+from xdg.BaseDirectory import xdg_config_home
 import logging
 from ..tools import getIcon, Config, ind, root_dir, autostart_file, griveignore_init
 from ..UI import CSDWindow
@@ -173,22 +174,22 @@ def setInterval(value):
 
 def enableStartup(is_active):
     if is_active:
+        logger.debug("Enable autostart")
         if not os.path.isfile(autostart_file):
+            os.makedirs(os.path.join(xdg_config_home, 'autostart'), exist_ok=True)
             shutil.copyfile(src=os.path.join(root_dir, "data", 'grive-indicator.desktop'),
-                            dst=os.path.join(os.path.expanduser('~'), '.config',
-                                             'autostart', 'grive-indicator.desktop'))
-            with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
-                                   'grive-indicator.desktop'), 'r') as f:
+                            dst=autostart_file)
+            with open(autostart_file, 'r') as f:
                 txt = f.read()
                 if os.path.dirname(root_dir) in site.getsitepackages():
                     txt = re.sub(r"root_dir/", '', txt)
                 else:
                     # Not an install, we keep the local version you're using
                     txt = re.sub(r"root_dir/", '{}/'.format(os.path.join(os.path.dirname(root_dir), 'bin')), txt)
-            with open(os.path.join(os.path.expanduser('~'), '.config', 'autostart',
-                                   'grive-indicator.desktop'), 'w') as f:
+            with open(autostart_file, 'w') as f:
                 f.write(txt)
     else:
+        logger.debug("Disable autostart")
         if os.path.exists(autostart_file):
             os.remove(autostart_file)
 

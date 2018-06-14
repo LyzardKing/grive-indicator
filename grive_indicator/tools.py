@@ -28,15 +28,16 @@ gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, GLib, Notify, GdkPixbuf, Gdk
 from gi.repository import AppIndicator3
 from .UI import InfoDialog, EntryDialog
+from xdg.BaseDirectory import xdg_config_home
 import shutil
 import re
 
 
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-config_file = os.path.join(GLib.get_user_config_dir(), 'grive_indicator.conf')
+autostart_file = os.path.join(xdg_config_home, 'autostart', 'grive-indicator.desktop')
+config_file = os.path.join(xdg_config_home, 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
 Notify.init(__name__)
-autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
 griveignore_init = "# Set rules For selective sync.\n"\
                    "# Check the man page or\n"\
                    "# https://github.com/vitalif/grive2#griveignore"
