@@ -25,7 +25,7 @@ import configparser
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, GLib, Notify, GdkPixbuf, Gdk
+from gi.repository import Gtk, Notify, GdkPixbuf, Gdk
 from gi.repository import AppIndicator3
 from .UI import InfoDialog, EntryDialog
 from xdg.BaseDirectory import xdg_config_home

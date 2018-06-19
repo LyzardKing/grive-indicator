@@ -137,9 +137,9 @@ class GriveIndicator(Gtk.Application):
             logger.debug('Running: {}'.format(grive_cmd))
             if not self.debug:
                 result = subprocess.Popen(grive_cmd,
-                                        cwd=folder,
-                                        stderr=subprocess.STDOUT,
-                                        stdout=subprocess.PIPE)
+                                          cwd=folder,
+                                          stderr=subprocess.STDOUT,
+                                          stdout=subprocess.PIPE)
             notify = Config().getValue('show_notifications')
             if notify.lower() == 'true':
                 notify = True
