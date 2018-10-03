@@ -18,7 +18,7 @@ class CodeCheck(TestCase):
 
         Note that we have a .pycodestyle config file for maximum line length tweak,
         excluding E402 and tmp files."""
-        style = pycodestyle.StyleGuide(config_file=os.path.join(config_folder, '.pycodestyle'))
+        style = pycodestyle.StyleGuide(config_file=os.path.join(config_folder, 'setup.cfg'))
 
         # we want to use either local or system grive_indicator, but always local tests files
         results = style.check_files(folders)

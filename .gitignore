@@ -7,6 +7,8 @@ build/
 *.egg-info
 *.pybuild
 dist/
+.cache
+.pytest_cache
 
 # Log used by setup.py
 installed.log
@@ -28,9 +30,3 @@ snap/.snapcraft/
 
 # virtualenv
 env/
-
-# builds
-build/
-*.egg-info
-*.pybuild
-.cache
