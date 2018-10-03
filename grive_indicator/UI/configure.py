@@ -19,16 +19,27 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import logging
 from ..tools import runConfigure, griveignore_init
-from ..UI import InfoDialog, CSDWindow
-
 
 logger = logging.getLogger(__name__)
 
 
-class ConfigureWindow(CSDWindow):
+class ConfigureWindow(Gtk.Window):
 
-    def __init__(self):
-        super().__init__(title='Settings')
+    def __init__(self, nocsd):
+        title='Configure'
+        Gtk.Window.__init__(self, title=title)
+
+        self.set_default_size(150, 100)
+        self.set_border_width(18)
+
+        if not nocsd:
+            self.hb = Gtk.HeaderBar()
+            self.hb.set_show_close_button(False)
+            self.hb.props.title = title
+            self.set_titlebar(self.hb)
+
+        self.grid = Gtk.Grid(column_spacing=10, row_spacing=10)
+        self.add(self.grid)
 
         label_folder = Gtk.Label("Local Folder")
         self.folder_chooser = Gtk.FileChooserButton(action=Gtk.FileChooserAction.SELECT_FOLDER)
@@ -61,17 +72,21 @@ class ConfigureWindow(CSDWindow):
         selective_sync = self.remote_folder.get_buffer().get_text(self.remote_folder.get_buffer().get_start_iter(),
                                                                   self.remote_folder.get_buffer().get_end_iter(),
                                                                   True)
-        # selective_sync = None if selective_sync is None else '*\n' + selective_sync
         runConfigure(folder_chooser, selective_sync)
-        response = InfoDialog.main(parent=None, title='Warning', label="Restart grive-indicator to start auto sync")
-        if response == Gtk.ResponseType.OK:
+        dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
+                                     Gtk.ButtonsType.YES_NO,
+                                     "Restart grive indicator"
+                                     "To enable autosync")
+        response = dialog.run()
+        if response == Gtk.ResponseType.YES:
+            logger.info("Closing...")
             Gtk.main_quit()
 
     def cancel(self, widget):
         Gtk.main_quit()
 
 
-def main():
-    window = ConfigureWindow()
+def main(nocsd):
+    window = ConfigureWindow(nocsd)
     window.connect("delete-event", Gtk.main_quit)
     window.show_all()

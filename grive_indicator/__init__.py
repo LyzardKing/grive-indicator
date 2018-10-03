@@ -25,9 +25,10 @@ import signal
 from concurrent import futures
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import Gtk, Gdk, Gio, GLib
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, Gdk, Gio, GLib, Notify
 from datetime import datetime
-from grive_indicator.UI import settings, configure, InfoDialog
+from grive_indicator.UI import settings, configure
 from grive_indicator.tools import ind, Config, config_file,\
     is_connected, runConfigure, show_notify
 
@@ -45,24 +46,21 @@ class GriveIndicator(Gtk.Application):
     def do_activate(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
-        parser.add_argument('--selective', '-s', action='store',
-                            help='comma separated list of (regex) files to not sync')
+        parser.add_argument('--nocsd', action='store_true', help='Disable CSD')
         parser.add_argument('--debug', action='store_true', help='Debug mode without grive')
         # TODO: Add auth parameter
         args = parser.parse_args()
         folder = args.folder
-        selective = args.selective
         self.debug = args.debug
+        self.nocsd = args.nocsd
 
         self.menu_setup()
         ind.set_menu(self.menu)
         if folder:
-            if selective:
-                selective = selective.replace(',', '\n')
-            runConfigure(folder, selective)
+            runConfigure(folder=folder)
         if not os.path.exists(config_file):
             logger.debug('Setting config file %s.' % config_file)
-            configure.main()
+            configure.main(self.nocsd)
         else:
             self.syncDaemon()
         Gtk.main()
@@ -141,10 +139,6 @@ class GriveIndicator(Gtk.Application):
                                           stderr=subprocess.STDOUT,
                                           stdout=subprocess.PIPE)
             notify = Config().getValue('show_notifications')
-            if notify.lower() == 'true':
-                notify = True
-            else:
-                notify = False
             if not self.debug:
                 for grive_out_line in result.stdout:
                     grive_out_line = grive_out_line.decode()
@@ -156,28 +150,25 @@ class GriveIndicator(Gtk.Application):
             self.lastSync_item.set_label('Last sync at ' + self.lastSync)
         except OSError:
             logger.error('Missing grive in PATH')
-            # Gtk.main_quit()
             pass
         except Exception as e:
             logger.error('Error occurred running grive. Skipping sync: %s' % e)
             pass
 
     def openRemote(self, widget):
-        Gtk.show_uri(None, "https://drive.google.com", Gdk.CURRENT_TIME)
+        # Gtk.show_uri_on_window(None, "https://drive.google.com", Gdk.CURRENT_TIME)
+        subprocess.call(["xdg-open", "https://drive.google.com"])
 
     def openLocal(self, widget):
-        Gtk.show_uri(None, "file://{}".format(Config().getValue('folder')), Gdk.CURRENT_TIME)
+        # Gtk.show_uri_on_window(None, "file://{}".format(Config().getValue('folder')), Gdk.CURRENT_TIME)
+        subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
 
     def settings(self, widget):
-        settings.main(self.debug)
+        settings.main(self.debug, self.nocsd)
 
     def Quit(self, widget=None):
         if self.future.running():
-            response = InfoDialog.main(parent=None,
-                                       title='Warning',
-                                       label='Grive is currently syncing. Please wait a moment.')
-            if response == Gtk.ResponseType.OK:
-                logger.debug('Finishing sync.')
+            Notify.Notification.new('Grive is terminating a sync').show()
         Gtk.main_quit()
 
 
