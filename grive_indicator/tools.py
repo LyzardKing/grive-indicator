@@ -55,6 +55,14 @@ class Config:
         self.config.read(config_file)
         return self.config['DEFAULT'][key]
 
+    def getbool(self, key):
+        self.config.read(config_file)
+        tmp = self.config['DEFAULT'][key]
+        if tmp.lower() == 'false':
+            return False
+        else:
+            return True
+
     def setValue(self, key, value):
         logger.debug('Set config {} to {}'.format(key, value))
         self.config.read(config_file)

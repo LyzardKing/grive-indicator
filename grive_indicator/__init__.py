@@ -46,13 +46,16 @@ class GriveIndicator(Gtk.Application):
     def do_activate(self):
         parser = argparse.ArgumentParser(description='Grive Indicator.')
         parser.add_argument('--folder', '-f', action='store', help='destination folder')
-        parser.add_argument('--nocsd', action='store_true', help='Disable CSD')
         parser.add_argument('--debug', action='store_true', help='Debug mode without grive')
         # TODO: Add auth parameter
         args = parser.parse_args()
         folder = args.folder
         self.debug = args.debug
-        self.nocsd = args.nocsd
+        try:
+            self.nocsd = not Config().getbool('use_csd')
+        except Exception as e:
+            logger.error(e)
+            self.nocsd = True
 
         self.menu_setup()
         ind.set_menu(self.menu)

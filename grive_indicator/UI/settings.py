@@ -70,6 +70,11 @@ class SettingsWindow(Gtk.Window):
         notification_switch.set_active(bool(conf.getValue('show_notifications')))
         notification_switch.connect('notify::active', self.on_notification_activate)
 
+        label_csd = Gtk.Label("Enable CSD", xalign=1)
+        csd_switch = Gtk.Switch(halign=Gtk.Align.START)
+        csd_switch.set_active(conf.config['DEFAULT'].getboolean('use_csd'))
+        csd_switch.connect('notify::active', self.on_csd_activate)
+
         label_up_speed = Gtk.Label("Limit Upload Speed", xalign=1)
         self.upload_speed = Gtk.SpinButton()
         self.upload_speed.set_numeric(True)
@@ -103,7 +108,9 @@ class SettingsWindow(Gtk.Window):
         self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_notification, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(notification_switch, label_notification, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(label_up_speed, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(label_csd, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(csd_switch, label_csd, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_up_speed, label_csd, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
@@ -155,6 +162,11 @@ class SettingsWindow(Gtk.Window):
 
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
+
+    def on_csd_activate(self, switch, gparam):
+        self.nocsd = not switch.get_active()
+        print(self.nocsd)
+        Config().setValue('use_csd', str(switch.get_active()).lower())
 
     def close_window(self, widget):
         self.destroy()
