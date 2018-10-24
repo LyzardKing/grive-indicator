@@ -25,25 +25,25 @@ import configparser
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, GLib, Notify, GdkPixbuf, Gdk
+gi.require_version('Gio', '2.0')
+from gi.repository import Gtk, Notify, GdkPixbuf, Gdk, Gio
 from gi.repository import AppIndicator3
-from .UI import InfoDialog, EntryDialog
+from xdg.BaseDirectory import xdg_config_home
 import shutil
 import re
 
 
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-config_file = os.path.join(GLib.get_user_config_dir(), 'grive_indicator.conf')
+autostart_file = os.path.join(xdg_config_home, 'autostart', 'grive-indicator.desktop')
+config_file = os.path.join(xdg_config_home, 'grive_indicator.conf')
 logger = logging.getLogger(__name__)
 Notify.init(__name__)
-autostart_file = os.path.join(GLib.get_user_config_dir(), 'autostart', 'grive-indicator.desktop')
 griveignore_init = "# Set rules For selective sync.\n"\
                    "# Check the man page or\n"\
-                   "# https://github.com/vitalif/grive2#griveignore"
+                   "# https://github.com/vitalif/grive2#griveignore\n"
 
 
 class Config:
-
     def __init__(self):
         self.config = configparser.ConfigParser()
 
@@ -54,6 +54,14 @@ class Config:
     def getValue(self, key):
         self.config.read(config_file)
         return self.config['DEFAULT'][key]
+
+    def getbool(self, key):
+        self.config.read(config_file)
+        tmp = self.config['DEFAULT'][key]
+        if tmp.lower() == 'false':
+            return False
+        else:
+            return True
 
     def setValue(self, key, value):
         logger.debug('Set config {} to {}'.format(key, value))
@@ -85,9 +93,12 @@ def runConfigure(folder, selective=None):
             return
     _runConfigure(folder, selective)
     if not os.path.isfile(os.path.join(folder, '.grive')):
-        response = InfoDialog.main(parent=None, title='Warning',
-                                   label='The  is not currently registered with grive. Do you want to proceed?')
-        if response == Gtk.ResponseType.OK:
+        dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
+                                   Gtk.ButtonsType.YES_NO, "The folder is not currently registered with grive")
+        dialog.format_secondary_text("Do you want to proceed?")
+        dialog.run()
+
+        if dialog == Gtk.ResponseType.YES:
             logger.debug('Confirm auth')
             # Authenticate with Google Drive
             runAuth(folder)
@@ -100,9 +111,6 @@ def _runConfigure(folder, selective=None):
         griveignore.write(selective)
     conf = Config()
     conf.setValue('folder', folder)
-    conf.setValue('selective', str(selective is not None))
-    with open(config_file, 'w') as configfile:
-        conf.config.write(configfile)
 
 
 def runAuth(folder):
@@ -121,11 +129,26 @@ def _runAuth(folder):
         if 'Please input the authentication code' in txt:
             break
     url = re.search('https.*googleusercontent.com', txt).group(0)
-    Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
-    auth_response = EntryDialog.main(parent=None, title='Warning', label='Insert the Auth Code')
-    logger.debug(auth_response)
-    auth.stdin.write(auth_response.encode())
-    auth.stdin.flush()
+    # Gtk.show_uri_on_window(None, url, Gdk.CURRENT_TIME)
+    subprocess.call(["xdg-open", url])
+    dialogWindow = Gtk.MessageDialog(None,
+                                     0,
+                                     Gtk.MessageType.QUESTION,
+                                     Gtk.ButtonsType.OK_CANCEL,
+                                     "Insert the authentication code")
+    entry = Gtk.Entry()
+    dialogWindow.get_content_area().pack_end(entry, False, False, 0)
+
+    dialogWindow.show_all()
+    response = dialogWindow.run()
+    auth_response = entry.get_text()
+    dialogWindow.destroy()
+    if (response == Gtk.ResponseType.OK) and (auth_response != ''):
+        logger.debug(auth_response)
+        auth.stdin.write(auth_response.encode())
+        auth.stdin.flush()
+    else:
+        return None
 
 
 def getAlertIcon():
@@ -134,15 +157,13 @@ def getAlertIcon():
 
 def getIcon():
     try:
-        style = Config().getValue('style')
+        dark = Config().getValue('dark')
     except Exception as e:
         logger.error(e)
-        style = 'dark'
-    if style == 'light' or style == 'dark':
-        icon = os.path.join(root_dir, "data", 'drive-' + style + '.svg')
-        return icon
-    else:
-        return style
+        dark = 'true'
+    style = 'dark' if dark == 'true' else 'light'
+    icon = os.path.join(root_dir, "data", 'drive-' + style + '.svg')
+    return icon
 
 
 def show_notify(line):

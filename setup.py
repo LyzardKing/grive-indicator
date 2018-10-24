@@ -22,7 +22,7 @@ setup(
     description='Linux Gtk indicator to sync Google Drive via Grive',
     packages=find_packages(exclude=["tests*"]),
     package_data={'grive_indicator': data},
-    data_files=[(sys.prefix + '/share/applications', ['grive-indicator.desktop'])] + icons,
+    data_files=[(sys.prefix + '/share/applications', ['grive_indicator/data/grive-indicator.desktop'])] + icons,
     entry_points={
         'console_scripts': [
             'grive-indicator = grive_indicator:main',

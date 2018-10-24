@@ -7,4 +7,4 @@ Comment=Simple indicator applet to synchronize Google Drive contents
 Icon=web-google-drive
 Categories=Network;FileTransfer;
 Terminal=false
-StartupNotify=false
+StartupNotify=true
