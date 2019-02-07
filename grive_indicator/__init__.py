@@ -136,11 +136,11 @@ class GriveIndicator(Gtk.Application):
             logger.debug('Emulate sync, then update label')
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            if not self.debug:
-                result = subprocess.Popen(grive_cmd,
-                                          cwd=folder,
-                                          stderr=subprocess.STDOUT,
-                                          stdout=subprocess.PIPE)
+            #if not self.debug:
+            result = subprocess.Popen(grive_cmd,
+                                      cwd=folder,
+                                      stderr=subprocess.STDOUT,
+                                      stdout=subprocess.PIPE)
             notify = Config().getValue('show_notifications')
             if not self.debug:
                 for grive_out_line in result.stdout:

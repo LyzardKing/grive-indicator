@@ -28,7 +28,7 @@ class ConfigureWindow(Gtk.Window):
     def __init__(self, nocsd):
         title='Configure'
         Gtk.Window.__init__(self, title=title)
-
+        self.set_icon_name("web-google-drive")
         self.set_default_size(150, 100)
         self.set_border_width(18)
 

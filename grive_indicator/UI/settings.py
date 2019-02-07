@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 class SettingsWindow(Gtk.Window):
 
     def __init__(self, debug, nocsd):
-        Gtk.Window.__init__(self, title="Settings")
+        Gtk.Window.__init__(self,
+                            title="Settings")
+        self.set_icon_name("web-google-drive")
 
         self.debug = debug
         self.set_default_size(150, 100)
@@ -43,6 +45,7 @@ class SettingsWindow(Gtk.Window):
             self.hb.set_show_close_button(False)
             self.hb.props.title = 'Settings'
             self.set_titlebar(self.hb)
+            self.set_decorations(0)
 
         self.grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.grid)
