@@ -15,19 +15,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import gi
 import argparse
-import os
-import subprocess
-import re
+import gi
 import logging
+import os
+import re
 import signal
-from concurrent import futures
-gi.require_version('Gtk', '3.0')
+import subprocess
+
 gi.require_version('AppIndicator3', '0.1')
+gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
-from gi.repository import Gtk, Gdk, Gio, GLib, Notify
+
+from concurrent import futures
 from datetime import datetime
+from gi.repository import Gtk, Gio, GLib, Notify
 from grive_indicator.UI import settings, configure
 from grive_indicator.tools import ind, Config, config_file,\
     is_connected, runConfigure, show_notify
@@ -136,7 +138,7 @@ class GriveIndicator(Gtk.Application):
             logger.debug('Emulate sync, then update label')
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            #if not self.debug:
+            # if not self.debug:
             result = subprocess.Popen(grive_cmd,
                                       cwd=folder,
                                       stderr=subprocess.STDOUT,

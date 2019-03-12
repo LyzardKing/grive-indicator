@@ -1,8 +1,6 @@
-import sys
-import pyflakes
-from pyflakes import api
-from unittest import TestCase
 from tests import folders
+from unittest import TestCase
+from flake8.api import legacy as flake8
 
 
 class StyleCheck(TestCase):
@@ -10,7 +8,6 @@ class StyleCheck(TestCase):
     def test_pyflakes(self):
         """Proceed a pyflakes checking"""
 
-        # we want to use either local or system grive_indicator, but always local tests files
-        reporter = pyflakes.reporter.Reporter(sys.stdout, sys.stderr)
-        results = api.checkRecursive(paths=folders, reporter=reporter)
-        self.assertEqual(results, 0)
+        style_guide = flake8.get_style_guide(ignore=['E402', 'E408', 'E501', 'W605'])
+        report = style_guide.check_files(folders)
+        assert report.get_statistics('E') == [], 'Flake8 found violations'

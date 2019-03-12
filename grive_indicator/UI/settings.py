@@ -14,16 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import gi
+import logging
+import os
 import re
 import shutil
 import site
+import subprocess
+
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+
+from gi.repository import Gtk
 from contextlib import suppress
 from xdg.BaseDirectory import xdg_config_home
-import logging
 from ..tools import getIcon, Config, ind, root_dir, autostart_file, griveignore_init
 
 logger = logging.getLogger(__name__)

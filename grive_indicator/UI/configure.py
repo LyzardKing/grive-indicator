@@ -15,9 +15,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
 import logging
+
+gi.require_version('Gtk', '3.0')
+
+from gi.repository import Gtk
 from ..tools import runConfigure, griveignore_init
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 class ConfigureWindow(Gtk.Window):
 
     def __init__(self, nocsd):
-        title='Configure'
+        title = 'Configure'
         Gtk.Window.__init__(self, title=title)
         self.set_icon_name("web-google-drive")
         self.set_default_size(150, 100)
@@ -74,9 +76,9 @@ class ConfigureWindow(Gtk.Window):
                                                                   True)
         runConfigure(folder_chooser, selective_sync)
         dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
-                                     Gtk.ButtonsType.YES_NO,
-                                     "Restart grive indicator"
-                                     "To enable autosync")
+                                   Gtk.ButtonsType.YES_NO,
+                                   "Restart grive indicator"
+                                   "To enable autosync")
         response = dialog.run()
         if response == Gtk.ResponseType.YES:
             logger.info("Closing...")
