@@ -29,10 +29,10 @@ gi.require_version('Notify', '0.7')
 
 from concurrent import futures
 from datetime import datetime
-from gi.repository import Gtk, Gio, GLib, Notify
+from gi.repository import Gtk, Gdk, Gio, GLib, Notify
 from grive_indicator.UI import settings, configure
 from grive_indicator.tools import ind, Config, config_file,\
-    is_connected, runConfigure, show_notify
+    is_connected, runConfigure, show_notify, get_version
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -40,29 +40,36 @@ logger = logging.getLogger(__name__)
 
 class GriveIndicator(Gtk.Application):
 
-    def __init__(self):
-        Gtk.Application.__init__(self,
-                                 application_id="org.app.grive_indicator",
-                                 flags=Gio.ApplicationFlags.FLAGS_NONE)
+    def __init__(self, cliArgs, *args, **kwargs):
+        super().__init__(*args, application_id="com.github.lyzardking.grive_indicator",
+                         flags=Gio.ApplicationFlags.FLAGS_NONE,
+                         **kwargs)
+        if cliArgs.version:
+            print(get_version())
+            exit()
+        self.folder = cliArgs.folder
+        self.debug = cliArgs.debug
 
-    def do_activate(self):
-        parser = argparse.ArgumentParser(description='Grive Indicator.')
-        parser.add_argument('--folder', '-f', action='store', help='destination folder')
-        parser.add_argument('--debug', action='store_true', help='Debug mode without grive')
-        # TODO: Add auth parameter
-        args = parser.parse_args()
-        folder = args.folder
-        self.debug = args.debug
+    def on_activate(self):
+        if not self.future.running():
+            logger.debug("Already Running: Running sync")
+            self.lastSync_item.set_label('Syncing...')
+            self.syncNow(None)
+        else:
+            logger.debug("Sync already running")
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
         try:
-            self.nocsd = not Config().getbool('use_csd')
+            self.nocsd = not Config().getBool('use_csd')
         except Exception as e:
             logger.error(e)
             self.nocsd = True
 
         self.menu_setup()
         ind.set_menu(self.menu)
-        if folder:
-            runConfigure(folder=folder)
+        if self.folder:
+            runConfigure(folder=self.folder)
         if not os.path.exists(config_file):
             logger.debug('Setting config file %s.' % config_file)
             configure.main(self.nocsd)
@@ -112,6 +119,7 @@ class GriveIndicator(Gtk.Application):
 
     def refresh(self):
         if is_connected() is True:
+            self.lastSync_item.set_label('Syncing...')
             self.syncNow(None)
         GLib.timeout_add_seconds(60 * int(Config().getValue('time')), self.refresh)
 
@@ -123,30 +131,27 @@ class GriveIndicator(Gtk.Application):
         self.lastSync_item.set_label('Syncing...')
         folder = Config().getValue('folder')
         grive_cmd = ['grive']
-        # Uncomment the following line if testing.
-        # grive_cmd.append('--dry-run')
+        # grive_cmd = ['/snap/bin/grive-indicator.grive']
         upload_speed = Config().getValue('upload_speed')
-        if upload_speed != '':
+        if upload_speed != "0":
             grive_cmd.append('--upload-speed {}'.format(upload_speed))
         download_speed = Config().getValue('download_speed')
-        if download_speed != '':
+        if download_speed != "0":
             grive_cmd.append('--download-speed {}'.format(download_speed))
-        # Debug UI
         if self.debug:
             logger.setLevel('DEBUG')
             logger.debug('Running in debug mode')
             logger.debug('Emulate sync, then update label')
         try:
             logger.debug('Running: {}'.format(grive_cmd))
-            # if not self.debug:
-            result = subprocess.Popen(grive_cmd,
-                                      cwd=folder,
-                                      stderr=subprocess.STDOUT,
-                                      stdout=subprocess.PIPE)
+            result = subprocess.run(grive_cmd,
+                                    cwd=folder,
+                                    stderr=subprocess.STDOUT,
+                                    stdout=subprocess.PIPE)
             notify = Config().getValue('show_notifications')
-            if not self.debug:
-                for grive_out_line in result.stdout:
-                    grive_out_line = grive_out_line.decode()
+            if self.debug:
+                for grive_out_line in str.splitlines(result.stdout.decode()):
+                    logger.debug('Grive log: ' + grive_out_line)
                     if notify:
                         if grive_out_line.startswith('sync'):
                             show_notify(grive_out_line)
@@ -161,12 +166,17 @@ class GriveIndicator(Gtk.Application):
             pass
 
     def openRemote(self, widget):
-        # Gtk.show_uri_on_window(None, "https://drive.google.com", Gdk.CURRENT_TIME)
-        subprocess.call(["xdg-open", "https://drive.google.com"])
+        Gtk.show_uri_on_window(None, "https://drive.google.com", Gdk.CURRENT_TIME)
 
     def openLocal(self, widget):
-        # Gtk.show_uri_on_window(None, "file://{}".format(Config().getValue('folder')), Gdk.CURRENT_TIME)
-        subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
+        localFolder = "file://{}".format(Config().getValue('folder'))
+        if os.getenv("SNAP") is not None:
+            logger.debug("Opening {} in snap: xdg-open".format(localFolder))
+            subprocess.call(["xdg-open", localFolder])
+        else:
+            logger.debug("Opening {}: show_uri_on_window".format(localFolder))
+            Gtk.show_uri_on_window(None, localFolder, Gdk.CURRENT_TIME)
+        # subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
 
     def settings(self, widget):
         settings.main(self.debug, self.nocsd)
@@ -181,5 +191,16 @@ def main():
     # Glib steals the SIGINT handler and so, causes issue in the callback
     # https://bugzilla.gnome.org/show_bug.cgi?id=622084
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    app = GriveIndicator()
+
+    parser = argparse.ArgumentParser(description='Grive Indicator.')
+    parser.add_argument('--folder', '-f', action='store', help='Custom destination folder')
+    parser.add_argument('--debug', action='store_true', help='Debug mode without grive')
+    parser.add_argument('--version', action='store_true', help='Print the version and quit')
+    # TODO: Add auth parameter
+    args = parser.parse_args()
+
+    app = GriveIndicator(args)
+    # app.connect("activate", app.on_activate)
+    # app.connect("startup", app.do_startup)
+
     app.run()

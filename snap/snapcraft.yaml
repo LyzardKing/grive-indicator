@@ -1,11 +1,9 @@
 name: grive-indicator
 version: 'master'
-summary: Simple indicator for Grive sync tool
+summary: Appindicator menu for Grive2
 description: |
-  This is my-snap's description. You have a paragraph or two to tell the
-  most important story about your snap. Keep it under 100 words though,
-  we live in tweetspace and your description wants to look good in the snap
-  store.
+  Appindicator menu support for grive2.
+  Google Drive sync tool.
 
 grade: stable
 confinement: strict
@@ -24,7 +22,6 @@ apps:
       - x11
       - gnome-3-28-1804
       - unity7
-      - network-control
     environment:
       XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
       GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
@@ -50,16 +47,13 @@ plugs:
     target: $SNAP/data-dir/icons
     default-provider: gtk-common-themes:icon-themes
 
-
 slots:
   grive-indicator-dbus:
     interface: dbus
-    name: org.app.grive_indicator
+    name: com.github.lyzardking.grive_indicator
     bus: session
 
 parts:
-  desktop-gnome-platform:
-  
   grive-indicator:
     source: .
     plugin: python
@@ -105,3 +99,14 @@ parts:
       - libgcrypt20
       - libstdc++6
       - libyajl2
+  desktop-gnome-platform:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    plugin: make
+    make-parameters: ["FLAVOR=gtk3"]
+    build-packages:
+      - build-essential
+      - libgtk-3-dev
+    override-build: |
+      snapcraftctl build
+      mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform

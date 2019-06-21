@@ -48,17 +48,12 @@ griveignore_init = "# Set rules For selective sync.\n"\
 class Config:
     def __init__(self):
         self.config = configparser.ConfigParser()
-
-    def config(self):
         self.config.read(config_file)
-        return self.config
 
     def getValue(self, key):
-        self.config.read(config_file)
         return self.config['DEFAULT'][key]
 
-    def getbool(self, key):
-        self.config.read(config_file)
+    def getBool(self, key):
         tmp = self.config['DEFAULT'][key]
         if tmp.lower() == 'false':
             return False
@@ -67,7 +62,6 @@ class Config:
 
     def setValue(self, key, value):
         logger.debug('Set config {} to {}'.format(key, value))
-        self.config.read(config_file)
         self.config['DEFAULT'][key] = value
         with open(config_file, 'w') as configfile:
             self.config.write(configfile)
@@ -174,6 +168,24 @@ def show_notify(line):
     notification = Notify.Notification.new('{} {}'.format(key.capitalize(), value))
     notification.set_icon_from_pixbuf(GdkPixbuf.Pixbuf.new_from_file(getAlertIcon()))
     notification.show()
+
+
+def get_version():
+    '''Get version depending if on dev or released version'''
+    version = open(os.path.join(os.path.dirname(__file__), 'version'), 'r', encoding='utf-8').read().strip()
+    if os.getenv('SNAP_REVISION'):
+        snap_appendix = ''
+        snap_rev = os.getenv('SNAP_REVISION')
+        if snap_rev:
+            snap_appendix = '+snap{}'.format(snap_rev)
+        return version + snap_appendix
+    import subprocess
+    try:
+        # use git describe to get a revision ref if running from a branch. Will append dirty if local changes
+        version = subprocess.check_output(["git", "describe", "--tags", "--dirty"]).decode('utf-8').strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        version += "+unknown"
+    return version
 
 
 ind = AppIndicator3.Indicator.new("Grive Indicator", getIcon(),

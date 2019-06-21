@@ -48,7 +48,6 @@ class SettingsWindow(Gtk.Window):
             self.hb.set_show_close_button(False)
             self.hb.props.title = 'Settings'
             self.set_titlebar(self.hb)
-            self.set_decorations(0)
 
         self.grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.grid)
@@ -63,7 +62,7 @@ class SettingsWindow(Gtk.Window):
         label_theme = Gtk.Label("Dark Theme", xalign=1)
         theme_swith = Gtk.Switch(halign=Gtk.Align.START)
         # TODO Fix for custom themes
-        theme_swith.set_active(conf.config['DEFAULT'].getboolean('dark'))
+        theme_swith.set_active(conf.getBool('dark'))
         theme_swith.connect('notify::active', self.on_dark_theme_activate)
 
         label_startup = Gtk.Label("Enable on Startup", xalign=1)
@@ -78,7 +77,7 @@ class SettingsWindow(Gtk.Window):
 
         label_csd = Gtk.Label("Enable CSD", xalign=1)
         csd_switch = Gtk.Switch(halign=Gtk.Align.START)
-        csd_switch.set_active(conf.config['DEFAULT'].getboolean('use_csd'))
+        csd_switch.set_active(conf.getBool('use_csd'))
         csd_switch.connect('notify::active', self.on_csd_activate)
 
         label_up_speed = Gtk.Label("Limit Upload Speed", xalign=1)

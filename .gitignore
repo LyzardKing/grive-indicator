@@ -9,6 +9,7 @@ build/
 dist/
 .cache
 .pytest_cache
+.mypy_cache
 
 # Log used by setup.py
 installed.log
