@@ -31,10 +31,19 @@ sudo apt install python3-gi python3-requests gir1.2-appindicator3-0.1
 The snap can be built and installed via 
 ```sh
 snapcraft cleanbuild
-snap install grive-indicator_master_amd64.snap --classic --dangerous
+snap install grive-indicator_master_amd64.snap --dangerous
 ```
 
 It will pull grive as well, so it can be installed also if it is unavailable in the host system.
+
+## Source
+
+grive-indicator can also be run from the source directory:
+
+```sh
+cd <source dir>
+bin/grive-indicator
+```
 
 # Usage
 

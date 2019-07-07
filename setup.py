@@ -24,7 +24,7 @@ setup(
     package_data={'grive_indicator': data},
     data_files=[
         ('lib/python3/dist-packages/grive_indicator', ['grive_indicator/version']),
-        (sys.prefix + '/share/applications', ['grive_indicator/data/grive-indicator.desktop'])] +
+        (sys.prefix + '/share/applications', ['grive_indicator/data/grive-indicator.desktop'])]\
          + icons,
     entry_points={
         'console_scripts': [

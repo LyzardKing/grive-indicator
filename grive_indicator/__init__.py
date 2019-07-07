@@ -50,7 +50,7 @@ class GriveIndicator(Gtk.Application):
         self.folder = cliArgs.folder
         self.debug = cliArgs.debug
 
-    def on_activate(self):
+    def on_activate(self, *_):
         if not self.future.running():
             logger.debug("Already Running: Running sync")
             self.lastSync_item.set_label('Syncing...')
@@ -182,6 +182,7 @@ class GriveIndicator(Gtk.Application):
         settings.main(self.debug, self.nocsd)
 
     def Quit(self, widget=None):
+        logger.debug("Closing...")
         if self.future.running():
             Notify.Notification.new('Grive is terminating a sync').show()
         Gtk.main_quit()
@@ -200,7 +201,7 @@ def main():
     args = parser.parse_args()
 
     app = GriveIndicator(args)
-    # app.connect("activate", app.on_activate)
+    app.connect("activate", app.on_activate)
     # app.connect("startup", app.do_startup)
 
     app.run()

@@ -1,5 +1,9 @@
 name: grive-indicator
 version: 'master'
+version-script: |
+  VER=$(cat grive_indicator/version)
+  REV=$(git rev-parse --short HEAD)
+  echo $VER-$REV
 summary: Appindicator menu for Grive2
 description: |
   Appindicator menu support for grive2.
@@ -70,8 +74,25 @@ parts:
       - libnotify4
       - gnome-themes-standard
     override-build: |
-     sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
-     snapcraftctl build
+      sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
+      snapcraftctl build
+    prime:
+      - bin
+      - command-*.wrapper
+      - flavor-select
+      - lib
+      - usr/bin/python*
+      - usr/lib/girepository-1.0
+      - usr/lib/python3*
+      - usr/lib/*/gio
+      - usr/lib/*/girepository-1.0
+      - usr/lib/*/libdbusmenu*
+      - usr/lib/*/libdee*
+      - usr/lib/*/libunity*
+      - usr/lib/*/libappindicator*
+      - usr/lib/*/libindicator*
+      - usr/share/applications/grive-indicator.desktop
+      - usr/share/icons/hicolor/*/apps/web-google-drive.png
   grive:
     source: https://github.com/vitalif/grive2.git
     plugin: cmake
@@ -110,3 +131,12 @@ parts:
     override-build: |
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
+  cleanup:
+    after: [desktop-gnome-platform, grive, grive-indicator]
+    plugin: nil
+    build-snaps: [ gnome-3-28-1804 ]
+    override-prime: |
+        set -eux
+        cd /snap/gnome-3-28-1804/current
+        find . -type f,l -exec rm -f $SNAPCRAFT_PRIME/{} \;
+
