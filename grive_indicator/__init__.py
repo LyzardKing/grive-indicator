@@ -60,11 +60,6 @@ class GriveIndicator(Gtk.Application):
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
-        try:
-            self.nocsd = not Config().getBool('use_csd')
-        except Exception as e:
-            logger.error(e)
-            self.nocsd = True
 
         self.menu_setup()
         ind.set_menu(self.menu)
@@ -72,7 +67,7 @@ class GriveIndicator(Gtk.Application):
             runConfigure(folder=self.folder)
         if not os.path.exists(config_file):
             logger.debug('Setting config file %s.' % config_file)
-            configure.main(self.nocsd)
+            configure.main()
         else:
             self.syncDaemon()
         Gtk.main()
@@ -138,6 +133,15 @@ class GriveIndicator(Gtk.Application):
         download_speed = Config().getValue('download_speed')
         if download_speed != "0":
             grive_cmd.append('--download-speed {}'.format(download_speed))
+        revisions = Config().getBool('revisions')
+        if revisions:
+            logger.info('Revisions active')
+            grive_cmd.append('--new-rev')
+        custom_options = Config().getValue('custom_options')
+        if custom_options:
+            logger.info('Custom options active: {}'.format(custom_options))
+            grive_cmd.append(custom_options)
+            logger.info(grive_cmd)
         if self.debug:
             logger.setLevel('DEBUG')
             logger.debug('Running in debug mode')
@@ -179,7 +183,7 @@ class GriveIndicator(Gtk.Application):
         # subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
 
     def settings(self, widget):
-        settings.main(self.debug, self.nocsd)
+        settings.main(self.debug)
 
     def Quit(self, widget=None):
         logger.debug("Closing...")

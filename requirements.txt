@@ -1,7 +1,0 @@
-# Runtime
-requests
-
-# Dev
-pytest
-pyflakes
-pycodestyle

@@ -60,6 +60,7 @@ slots:
 parts:
   grive-indicator:
     source: .
+    source-type: git
     plugin: python
     python-version: python3
     stage-packages:
@@ -131,12 +132,12 @@ parts:
     override-build: |
       snapcraftctl build
       mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
-  cleanup:
-    after: [desktop-gnome-platform, grive, grive-indicator]
-    plugin: nil
-    build-snaps: [ gnome-3-28-1804 ]
-    override-prime: |
-        set -eux
-        cd /snap/gnome-3-28-1804/current
-        find . -type f,l -exec rm -f $SNAPCRAFT_PRIME/{} \;
+  # cleanup:
+  #   after: [desktop-gnome-platform, grive, grive-indicator]
+  #   plugin: nil
+  #   build-snaps: [ gnome-3-28-1804 ]
+  #   override-prime: |
+  #       set -eux
+  #       cd /snap/gnome-3-28-1804/current
+  #       find . -type f,l -exec rm -f $SNAPCRAFT_PRIME/{} \;
 

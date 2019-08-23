@@ -27,18 +27,12 @@ logger = logging.getLogger(__name__)
 
 class ConfigureWindow(Gtk.Window):
 
-    def __init__(self, nocsd):
+    def __init__(self):
         title = 'Configure'
         Gtk.Window.__init__(self, title=title)
         self.set_icon_name("web-google-drive")
         self.set_default_size(150, 100)
         self.set_border_width(18)
-
-        if not nocsd:
-            self.hb = Gtk.HeaderBar()
-            self.hb.set_show_close_button(False)
-            self.hb.props.title = title
-            self.set_titlebar(self.hb)
 
         self.grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.grid)
@@ -88,7 +82,7 @@ class ConfigureWindow(Gtk.Window):
         Gtk.main_quit()
 
 
-def main(nocsd):
-    window = ConfigureWindow(nocsd)
+def main():
+    window = ConfigureWindow()
     window.connect("delete-event", Gtk.main_quit)
     window.show_all()

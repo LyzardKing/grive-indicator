@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 class SettingsWindow(Gtk.Window):
 
-    def __init__(self, debug, nocsd):
+    def __init__(self, debug):
         Gtk.Window.__init__(self,
                             title="Settings")
         self.set_icon_name("web-google-drive")
@@ -43,17 +43,11 @@ class SettingsWindow(Gtk.Window):
         self.set_default_size(150, 100)
         self.set_border_width(18)
 
-        if not nocsd:
-            self.hb = Gtk.HeaderBar()
-            self.hb.set_show_close_button(False)
-            self.hb.props.title = 'Settings'
-            self.set_titlebar(self.hb)
-
         self.grid = Gtk.Grid(column_spacing=10, row_spacing=10)
         self.add(self.grid)
 
         conf = Config()
-        label_timer = Gtk.Label("Sync timer", xalign=1)
+        label_timer = Gtk.Label("Sync timer (min)", xalign=1)
         self.timer_entry = Gtk.SpinButton()
         self.timer_entry.set_numeric(True)
         self.timer_entry.set_adjustment(Gtk.Adjustment(0, 0, 100, 1, 10, 0))
@@ -75,10 +69,13 @@ class SettingsWindow(Gtk.Window):
         notification_switch.set_active(bool(conf.getValue('show_notifications')))
         notification_switch.connect('notify::active', self.on_notification_activate)
 
-        label_csd = Gtk.Label("Enable CSD", xalign=1)
-        csd_switch = Gtk.Switch(halign=Gtk.Align.START)
-        csd_switch.set_active(conf.getBool('use_csd'))
-        csd_switch.connect('notify::active', self.on_csd_activate)
+        label_new_rev = Gtk.Label("Enable revisions", xalign=1)
+        new_rev_switch = Gtk.Switch(halign=Gtk.Align.START)
+        new_rev_switch.set_active(conf.getBool('revisions'))
+        new_rev_switch.connect('notify::active', self.on_revisions_activate)
+
+        label_custom_options = Gtk.Label("Custom options", xalign=1)
+        self.custom_options = Gtk.Entry()
 
         label_up_speed = Gtk.Label("Limit Upload Speed", xalign=1)
         self.upload_speed = Gtk.SpinButton()
@@ -113,20 +110,18 @@ class SettingsWindow(Gtk.Window):
         self.grid.attach_next_to(startup_swith, label_startup, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_notification, label_startup, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(notification_switch, label_notification, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(label_csd, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
-        self.grid.attach_next_to(csd_switch, label_csd, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(label_up_speed, label_csd, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(label_new_rev, label_notification, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(new_rev_switch, label_new_rev, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_custom_options, label_new_rev, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(self.custom_options, label_custom_options, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(label_up_speed, label_custom_options, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.upload_speed, label_up_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(label_down_speed, label_up_speed, Gtk.PositionType.BOTTOM, 1, 1)
         self.grid.attach_next_to(self.download_speed, label_down_speed, Gtk.PositionType.RIGHT, 2, 1)
         self.grid.attach_next_to(edit_ignore, self.download_speed, Gtk.PositionType.BOTTOM, 1, 1)
 
-        if nocsd:
-            self.grid.attach_next_to(confirm_button, edit_ignore, Gtk.PositionType.BOTTOM, 1, 1)
-            self.grid.attach_next_to(cancel_button, confirm_button, Gtk.PositionType.LEFT, 1, 1)
-        else:
-            self.hb.pack_end(confirm_button)
-            self.hb.pack_start(cancel_button)
+        self.grid.attach_next_to(confirm_button, edit_ignore, Gtk.PositionType.BOTTOM, 1, 1)
+        self.grid.attach_next_to(cancel_button, confirm_button, Gtk.PositionType.LEFT, 1, 1)
 
     def open_griveignore(self, gparam):
         griveignore = os.path.join(Config().getValue('folder'), '.griveignore')
@@ -168,10 +163,13 @@ class SettingsWindow(Gtk.Window):
     def on_startup_active(self, switch, gparam):
         enableStartup(switch.get_active())
 
-    def on_csd_activate(self, switch, gparam):
-        self.nocsd = not switch.get_active()
-        print(self.nocsd)
-        Config().setValue('use_csd', str(switch.get_active()).lower())
+    def on_revisions_activate(self, switch, gparam):
+        self.revisions = switch.get_active()
+        if switch.get_active():
+            logger.info("Add revision support")
+        else:
+            logger.info("Remove revision support")
+        Config().setValue('revisions', str(switch.get_active()).lower())
 
     def close_window(self, widget):
         self.destroy()
@@ -191,6 +189,8 @@ class SettingsWindow(Gtk.Window):
             setUploadSpeed(self.upload_speed.get_text())
         with suppress(ValueError):
             setDownloadSpeed(self.download_speed.get_text())
+        with suppress(ValueError):
+            setCustomOptions(self.custom_options.get_text())
         self.destroy()
 
 
@@ -207,6 +207,11 @@ def setUploadSpeed(value):
 def setInterval(value):
     if value is not None and value != Config().getValue('time'):
         Config().setValue("time", value)
+
+
+def setCustomOptions(value):
+    if value is not None and value != Config().getValue('custom_options'):
+        Config().setValue('custom_options', value)
 
 
 def enableStartup(is_active):
@@ -244,6 +249,6 @@ def setLightTheme():
     ind.set_icon_full(os.path.join(root_dir, "data", getIcon()), "grive-indicator-light")
 
 
-def main(debug, nocsd):
-    window = SettingsWindow(debug, nocsd)
+def main(debug):
+    window = SettingsWindow(debug)
     window.show_all()

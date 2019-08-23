@@ -29,6 +29,7 @@ gi.require_version('Gio', '2.0')
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 
+from contextlib import suppress
 from gi.repository import AppIndicator3
 from gi.repository import Gtk, Notify, GdkPixbuf
 from pathlib import Path
@@ -38,6 +39,7 @@ from xdg.BaseDirectory import xdg_config_home
 root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
 autostart_file = os.path.join(xdg_config_home, 'autostart', 'grive-indicator.desktop')
 config_file = os.path.join(xdg_config_home, 'grive_indicator.conf')
+log_file = os.path.join(xdg_config_home, 'grive_indicator.grive.log')
 logger = logging.getLogger(__name__)
 Notify.init(__name__)
 griveignore_init = "# Set rules For selective sync.\n"\
@@ -51,14 +53,18 @@ class Config:
         self.config.read(config_file)
 
     def getValue(self, key):
-        return self.config['DEFAULT'][key]
+        try:
+            return self.config['DEFAULT'][key]
+        except KeyError:
+            return None
 
     def getBool(self, key):
-        tmp = self.config['DEFAULT'][key]
-        if tmp.lower() == 'false':
-            return False
-        else:
-            return True
+        with suppress(KeyError):
+            tmp = self.config['DEFAULT'][key]
+            if tmp.lower() == 'false':
+                return False
+            else:
+                return True
 
     def setValue(self, key, value):
         logger.debug('Set config {} to {}'.format(key, value))
