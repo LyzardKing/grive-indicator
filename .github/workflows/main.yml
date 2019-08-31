@@ -15,7 +15,7 @@ jobs:
         python-version: 3.6
     - name: Install dependencies
       run: |
-        sudo apt install libgirepository1.0-dev gir1.2-appindicator3-0.1
+        sudo apt install libgirepository1.0-dev gir1.2-appindicator3-0.1 gir1.2-notify-0.7 gir1.2-gtk-3.0
         pip install pipenv
     - name: Run the tests
       run: |
