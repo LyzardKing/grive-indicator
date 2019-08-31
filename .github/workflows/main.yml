@@ -15,7 +15,7 @@ jobs:
         python-version: 3.6
     - name: Install dependencies
       run: |
-        apt install libgirepository1.0-dev
+        sudo apt install libgirepository1.0-dev
         pip install pipenv
     - name: Run the tests
       run: |
