@@ -5,13 +5,17 @@ name = "pypi"
 
 [packages]
 requests = "*"
-pytest = "*"
+pyxdg = "*"
+pycairo = "*"
+PyGObject = "*"
 
 [dev-packages]
 black = "*"
+setuptools = "*"
+pytest = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
 
 [pipenv]
 allow_prereleases = true

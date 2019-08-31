@@ -17,7 +17,7 @@
 import gi
 import logging
 
-gi.require_version('Gtk', '3.0')
+gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk
 from ..tools import runConfigure, griveignore_init
@@ -26,9 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConfigureWindow(Gtk.Window):
-
     def __init__(self):
-        title = 'Configure'
+        title = "Configure"
         Gtk.Window.__init__(self, title=title)
         self.set_icon_name("web-google-drive")
         self.set_default_size(150, 100)
@@ -38,7 +37,9 @@ class ConfigureWindow(Gtk.Window):
         self.add(self.grid)
 
         label_folder = Gtk.Label("Local Folder")
-        self.folder_chooser = Gtk.FileChooserButton(action=Gtk.FileChooserAction.SELECT_FOLDER)
+        self.folder_chooser = Gtk.FileChooserButton(
+            action=Gtk.FileChooserAction.SELECT_FOLDER
+        )
 
         label_selective = Gtk.Label("Selective Sync (leave blank for all)")
         self.remote_folder = Gtk.TextView()
@@ -48,31 +49,42 @@ class ConfigureWindow(Gtk.Window):
         self.remote_folder.get_buffer().set_text(griveignore_init)
         scrolledwindow.add(self.remote_folder)
 
-        confirm_button = Gtk.Button('Ok')
-        confirm_button.connect('clicked',
-                               self.confirmSettings)
+        confirm_button = Gtk.Button("Ok")
+        confirm_button.connect("clicked", self.confirmSettings)
 
-        escape_button = Gtk.Button('Cancel')
-        escape_button.connect('clicked',
-                              self.cancel)
+        escape_button = Gtk.Button("Cancel")
+        escape_button.connect("clicked", self.cancel)
 
         self.grid.add(label_folder)
         self.grid.attach(self.folder_chooser, 1, 0, 2, 1)
-        self.grid.attach_next_to(label_selective, label_folder, Gtk.PositionType.BOTTOM, 1, 1)
-        self.grid.attach_next_to(scrolledwindow, label_selective, Gtk.PositionType.RIGHT, 2, 1)
-        self.grid.attach_next_to(confirm_button, scrolledwindow, Gtk.PositionType.BOTTOM, 1, 1)
-        self.grid.attach_next_to(escape_button, confirm_button, Gtk.PositionType.RIGHT, 2, 1)
+        self.grid.attach_next_to(
+            label_selective, label_folder, Gtk.PositionType.BOTTOM, 1, 1
+        )
+        self.grid.attach_next_to(
+            scrolledwindow, label_selective, Gtk.PositionType.RIGHT, 2, 1
+        )
+        self.grid.attach_next_to(
+            confirm_button, scrolledwindow, Gtk.PositionType.BOTTOM, 1, 1
+        )
+        self.grid.attach_next_to(
+            escape_button, confirm_button, Gtk.PositionType.RIGHT, 2, 1
+        )
 
     def confirmSettings(self, widget):
         folder_chooser = self.folder_chooser.get_filename()
-        selective_sync = self.remote_folder.get_buffer().get_text(self.remote_folder.get_buffer().get_start_iter(),
-                                                                  self.remote_folder.get_buffer().get_end_iter(),
-                                                                  True)
+        selective_sync = self.remote_folder.get_buffer().get_text(
+            self.remote_folder.get_buffer().get_start_iter(),
+            self.remote_folder.get_buffer().get_end_iter(),
+            True,
+        )
         runConfigure(folder_chooser, selective_sync)
-        dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.QUESTION,
-                                   Gtk.ButtonsType.YES_NO,
-                                   "Restart grive indicator"
-                                   "To enable autosync")
+        dialog = Gtk.MessageDialog(
+            self,
+            0,
+            Gtk.MessageType.QUESTION,
+            Gtk.ButtonsType.YES_NO,
+            "Restart grive indicator" "To enable autosync",
+        )
         response = dialog.run()
         if response == Gtk.ResponseType.YES:
             logger.info("Closing...")

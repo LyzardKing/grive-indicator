@@ -4,7 +4,6 @@ from grive_indicator.tools import is_connected
 
 
 class ToolsTest(TestCase):
-
     def test_internet_active(self):
         """Validate an active internet connection with the default settings"""
 
