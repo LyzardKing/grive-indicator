@@ -1,9 +1,6 @@
 name: grive-indicator
-version: 'master'
-version-script: |
-  VER=$(cat grive_indicator/version)
-  REV=$(git rev-parse --short HEAD)
-  echo $VER-$REV
+adopt-info: grive-indicator
+license: GPL-3.0
 summary: Appindicator menu for Grive2
 description: |
   Appindicator menu support for grive2.
@@ -15,8 +12,9 @@ base: core18
 
 apps:
   grive-indicator:
-    command: desktop-launch grive-indicator
+    command: bin/grive-indicator
     desktop: usr/share/applications/grive-indicator.desktop
+    extensions: [gnome-3-28]
     plugs:
       - home
       - network
@@ -24,32 +22,17 @@ apps:
       - gsettings
       - wayland
       - x11
-      - gnome-3-28-1804
       - unity7
     environment:
       XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
       GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
   grive:
-    command: desktop-launch grive
+    command: bin/grive
+    extensions: [gnome-3-28]
     plugs:
       - home
       - network
       - desktop
-
-plugs:
-  gnome-3-28-1804:
-    interface: content
-    target: gnome-platform
-    default-provider: gnome-3-28-1804:gnome-3-28-1804
-    content: gnome-3-28-1804
-  gtk-3-themes:
-    interface: content
-    target: $SNAP/data-dir/themes
-    default-provider: gtk-common-themes:gtk-3-themes
-  icon-themes:
-    interface: content
-    target: $SNAP/data-dir/icons
-    default-provider: gtk-common-themes:icon-themes
 
 slots:
   grive-indicator-dbus:
@@ -74,13 +57,18 @@ parts:
       - gir1.2-notify-0.7
       - libnotify4
       - gnome-themes-standard
+      - inotify-tools
+    override-pull: |
+      snapcraftctl pull
+      VER=$(cat grive_indicator/version)
+      REV=$(git rev-parse --short HEAD)
+      snapcraftctl set-version $VER-$REV
     override-build: |
       sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
       snapcraftctl build
     prime:
       - bin
       - command-*.wrapper
-      - flavor-select
       - lib
       - usr/bin/python*
       - usr/lib/girepository-1.0
@@ -115,29 +103,8 @@ parts:
       - libboost-program-options1.65.1
       - libboost-regex1.65.1
       - libboost-system1.65.1
-      - libc6
       - libcurl4
       - libgcc1
       - libgcrypt20
       - libstdc++6
       - libyajl2
-  desktop-gnome-platform:
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: gtk
-    plugin: make
-    make-parameters: ["FLAVOR=gtk3"]
-    build-packages:
-      - build-essential
-      - libgtk-3-dev
-    override-build: |
-      snapcraftctl build
-      mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
-  # cleanup:
-  #   after: [desktop-gnome-platform, grive, grive-indicator]
-  #   plugin: nil
-  #   build-snaps: [ gnome-3-28-1804 ]
-  #   override-prime: |
-  #       set -eux
-  #       cd /snap/gnome-3-28-1804/current
-  #       find . -type f,l -exec rm -f $SNAPCRAFT_PRIME/{} \;
-
