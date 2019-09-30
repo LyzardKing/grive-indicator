@@ -35,11 +35,12 @@ from gi.repository import Gtk, Notify, GdkPixbuf
 from pathlib import Path
 from xdg.BaseDirectory import xdg_config_home
 
+root_dir = Path(__file__).resolve().parent
+root_data = Path(root_dir / "data")
+autostart_file = Path(Path(xdg_config_home) / "autostart/grive-indicator.desktop")
+config_file = Path(Path(xdg_config_home) / "grive_indicator.conf")
+log_file = Path(Path(xdg_config_home) / "grive_indicator.grive.log")
 
-root_dir = os.path.dirname(os.path.abspath(os.path.join(str(Path(__file__)))))
-autostart_file = os.path.join(xdg_config_home, "autostart", "grive-indicator.desktop")
-config_file = os.path.join(xdg_config_home, "grive_indicator.conf")
-log_file = os.path.join(xdg_config_home, "grive_indicator.grive.log")
 logger = logging.getLogger(__name__)
 Notify.init(__name__)
 griveignore_init = (
@@ -95,12 +96,12 @@ def is_connected(url="https://drive.google.com/", timeout=10):
 
 
 def runConfigure(folder, selective=None):
-    if os.path.exists(config_file):
+    if config_file.is_file():
         logger.info("A config file exists. Override? Y/n")
         if input().lower() != "y":
             return
     _runConfigure(folder, selective)
-    if not os.path.isfile(os.path.join(folder, ".grive")):
+    if not Path(folder / ".grive").is_file():
         dialog = Gtk.MessageDialog(
             None,
             0,
@@ -119,8 +120,8 @@ def runConfigure(folder, selective=None):
 
 def _runConfigure(folder, selective=None):
     logger.debug("Saving configurations: folder:%s selective:%s" % (folder, selective))
-    shutil.copy(os.path.join(root_dir, "data", "grive_indicator.conf"), config_file)
-    with open(os.path.join(folder, ".griveignore"), "w") as griveignore:
+    shutil.copy(Path(root_data / "grive_indicator.conf"), config_file)
+    with open(Path(folder / ".griveignore"), "w") as griveignore:
         griveignore.write(selective)
     conf = Config()
     conf.setValue("folder", folder)
@@ -169,7 +170,7 @@ def _runAuth(folder):
 
 
 def getAlertIcon():
-    return os.path.join(root_dir, "data", "drive-dark.svg")
+    return Path(root_dir / "data" / "drive-dark.svg")
 
 
 def getIcon():
@@ -179,7 +180,8 @@ def getIcon():
         logger.error(e)
         dark = "true"
     style = "dark" if dark == "true" else "light"
-    icon = os.path.join(root_dir, "data", "drive-" + style + ".svg")
+    icon_name = "drive-" + style + ".svg"
+    icon = Path(root_dir / "data" / icon_name)
     return icon
 
 
@@ -193,8 +195,9 @@ def show_notify(line):
 
 def get_version():
     """Get version depending if on dev or released version"""
+    version_file = Path(Path(__file__).resolve().parent / "version")
     version = (
-        open(os.path.join(os.path.dirname(__file__), "version"), "r", encoding="utf-8")
+        open(version_file, "r", encoding="utf-8")
         .read()
         .strip()
     )
@@ -219,7 +222,7 @@ def get_version():
 
 
 ind = AppIndicator3.Indicator.new(
-    "Grive Indicator", getIcon(), AppIndicator3.IndicatorCategory.APPLICATION_STATUS
+    "Grive Indicator", str(getIcon()), AppIndicator3.IndicatorCategory.APPLICATION_STATUS
 )
 ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 ind.set_attention_icon_full("indicator-messages-new", "Message attention icon")

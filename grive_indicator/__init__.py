@@ -30,6 +30,7 @@ gi.require_version("Notify", "0.7")
 from concurrent import futures
 from datetime import datetime
 from gi.repository import Gtk, Gdk, Gio, GLib, Notify
+from pathlib import Path
 from grive_indicator.UI import settings, configure
 from grive_indicator.tools import (
     ind,
@@ -74,7 +75,7 @@ class GriveIndicator(Gtk.Application):
         ind.set_menu(self.menu)
         if self.folder:
             runConfigure(folder=self.folder)
-        if not os.path.exists(config_file):
+        if not Path(config_file).is_file():
             logger.debug("Setting config file %s." % config_file)
             configure.main()
         else:

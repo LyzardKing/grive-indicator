@@ -20,7 +20,7 @@ import logging
 gi.require_version("Gtk", "3.0")
 
 from gi.repository import Gtk
-from ..tools import runConfigure, griveignore_init
+from ..tools import runConfigure, griveignore_init, Config
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,10 @@ class ConfigureWindow(Gtk.Window):
         self.add(self.grid)
 
         label_folder = Gtk.Label("Local Folder")
+        self.folder_selected = Gtk.Entry()
+        folder = Config().getValue("folder")
+        if folder:
+            self.folder_selected.set_text(folder)
         self.folder_chooser = Gtk.FileChooserButton(
             action=Gtk.FileChooserAction.SELECT_FOLDER
         )

@@ -59,7 +59,7 @@ class SettingsWindow(Gtk.Window):
 
         label_startup = Gtk.Label("Enable on Startup", xalign=1)
         startup_swith = Gtk.Switch(halign=Gtk.Align.START)
-        startup_swith.set_active(os.path.isfile(autostart_file))
+        startup_swith.set_active(autostart_file.is_file())
         startup_swith.connect("notify::active", self.on_startup_active)
 
         label_notification = Gtk.Label("Enable Notifications", xalign=1)
@@ -152,8 +152,8 @@ class SettingsWindow(Gtk.Window):
         )
 
     def open_griveignore(self, gparam):
-        griveignore = os.path.join(Config().getValue("folder"), ".griveignore")
-        if not os.path.isfile(griveignore):
+        griveignore = Path(Config().getValue("folder") / ".griveignore")
+        if not griveignore.is_file():
             with open(griveignore, "w") as griveignore_file:
                 griveignore_file.write(griveignore_init)
         try:
@@ -257,40 +257,40 @@ def enableStartup(is_active):
         if os.getenv("SNAP") is not None:
             logger.error("Running in confined snap. Autostart manually")
             return
-        if not os.path.isfile(autostart_file):
-            os.makedirs(os.path.join(xdg_config_home, "autostart"), exist_ok=True)
+        if not autostart_file.is_file():
+            Path.mkdir(Path(xdg_config_home / "autostart"), parents=True, exist_ok=True)
             shutil.copyfile(
-                src=os.path.join(root_dir, "data", "grive-indicator.desktop"),
+                src=Path(root_dir / "data" / "grive-indicator.desktop"),
                 dst=autostart_file,
             )
             with open(autostart_file, "r") as f:
                 txt = f.read()
-                if os.path.dirname(root_dir) in site.getsitepackages():
+                if root_dir.parent in site.getsitepackages():
                     txt = re.sub(r"root_dir/", "", txt)
                 else:
                     # Not an install, we keep the local version you're using
                     txt = re.sub(
                         r"root_dir/",
-                        "{}/".format(os.path.join(os.path.dirname(root_dir), "bin")),
+                        Path(root_dir.parent / bin / ""),
                         txt,
                     )
             with open(autostart_file, "w") as f:
                 f.write(txt)
     else:
         logger.debug("Disable autostart")
-        if os.path.exists(autostart_file):
+        if autostart_file.is_file():
             os.remove(autostart_file)
 
 
 def setDarkTheme():
     Config().setValue("dark", "true")
-    ind.set_icon_full(os.path.join(root_dir, "data", getIcon()), "grive-indicator-dark")
+    ind.set_icon_full(Path(root_dir / "data" / getIcon()), "grive-indicator-dark")
 
 
 def setLightTheme():
     Config().setValue("dark", "false")
     ind.set_icon_full(
-        os.path.join(root_dir, "data", getIcon()), "grive-indicator-light"
+        Path(root_dir / "data" / getIcon()), "grive-indicator-light"
     )
 
 
