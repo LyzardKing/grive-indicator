@@ -23,6 +23,8 @@ apps:
       - wayland
       - x11
       - unity7
+    slots:
+      - grive-indicator-dbus
     environment:
       XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
       GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
