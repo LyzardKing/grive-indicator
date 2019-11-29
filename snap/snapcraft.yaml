@@ -3,8 +3,8 @@ adopt-info: grive-indicator
 license: GPL-3.0
 summary: Appindicator menu for Grive2
 description: |
-  Appindicator menu support for grive2.
-  Google Drive sync tool.
+  Appindicator support for Grive2, the Google Drive sync tool.
+  Easily sync your Google Drive account from a ui indicator.
 
 grade: stable
 confinement: strict
@@ -14,29 +14,23 @@ apps:
   grive-indicator:
     command: bin/grive-indicator
     desktop: usr/share/applications/grive-indicator.desktop
+    passthrough:
+      autostart: grive-indicator
     extensions: [gnome-3-28]
     plugs:
       - home
       - network
-      - desktop
       - gsettings
-      - wayland
-      - x11
       - unity7
-    slots:
-      - grive-indicator-dbus
-    environment:
-      XDG_DATA_DIRS: $SNAP/share:$XDG_DATA_DIRS
-      GSETTINGS_SCHEMA_DIR: $SNAP/share/glib-2.0/schemas
   grive:
     command: bin/grive
     extensions: [gnome-3-28]
     plugs:
       - home
       - network
-      - desktop
 
 slots:
+  # for GtkApplication registration
   grive-indicator-dbus:
     interface: dbus
     name: com.github.lyzardking.grive_indicator
@@ -66,7 +60,7 @@ parts:
       REV=$(git rev-parse --short HEAD)
       snapcraftctl set-version $VER-$REV
     override-build: |
-      sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/512x512/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
+      sed -i 's|Icon=web-google-drive|Icon=${SNAP}/usr/share/icons/hicolor/48x48/apps/web-google-drive.png|g' grive_indicator/data/grive-indicator.desktop
       snapcraftctl build
     prime:
       - bin

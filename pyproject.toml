@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "grive-indicator"
+version = "0.1.0"
+description = ""
+authors = ["Galileo Sartor <galileo.sartor@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.22"
+pyxdg = "^0.26.0"
+pycairo = "^1.18"
+PyGobject = "^3.34"
+
+[tool.poetry.dev-dependencies]
+setuptools = "^41.6"
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

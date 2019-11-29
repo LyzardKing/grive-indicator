@@ -1,0 +1,7 @@
+requests
+pyxdg
+pycairo
+PyGObject
+black
+setuptools
+pytest

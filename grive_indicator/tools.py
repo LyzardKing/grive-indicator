@@ -23,6 +23,7 @@ import re
 import requests
 import shutil
 import subprocess
+import sys
 
 gi.require_version("AppIndicator3", "0.1")
 gi.require_version("Gio", "2.0")
@@ -31,7 +32,7 @@ gi.require_version("Notify", "0.7")
 
 from contextlib import suppress
 from gi.repository import AppIndicator3
-from gi.repository import Gtk, Notify, GdkPixbuf
+from gi.repository import Gtk, Notify, GdkPixbuf, Gdk
 from pathlib import Path
 from xdg.BaseDirectory import xdg_config_home
 
@@ -121,7 +122,7 @@ def runConfigure(folder, selective=None):
 def _runConfigure(folder, selective=None):
     logger.debug("Saving configurations: folder:%s selective:%s" % (folder, selective))
     shutil.copy(Path(root_data / "grive_indicator.conf"), config_file)
-    with open(Path(folder / ".griveignore"), "w") as griveignore:
+    with open((folder / ".griveignore"), "w") as griveignore:
         griveignore.write(selective)
     conf = Config()
     conf.setValue("folder", folder)
@@ -193,14 +194,25 @@ def show_notify(line):
     notification.show()
 
 
+def openRemote(widget):
+    Gtk.show_uri_on_window(None, "https://drive.google.com", Gdk.CURRENT_TIME)
+
+
+def openLocal(widget):
+    localFolder = "file://{}".format(Config().getValue("folder"))
+    if os.getenv("SNAP") is not None:
+        logger.debug("Opening {} in snap: xdg-open".format(localFolder))
+        subprocess.call(["xdg-open", localFolder])
+    else:
+        logger.debug("Opening {}: show_uri_on_window".format(localFolder))
+        Gtk.show_uri_on_window(None, localFolder, Gdk.CURRENT_TIME)
+    # subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
+
+
 def get_version():
     """Get version depending if on dev or released version"""
     version_file = Path(Path(__file__).resolve().parent / "version")
-    version = (
-        open(version_file, "r", encoding="utf-8")
-        .read()
-        .strip()
-    )
+    version = open(version_file, "r", encoding="utf-8").read().strip()
     if os.getenv("SNAP_REVISION"):
         snap_appendix = ""
         snap_rev = os.getenv("SNAP_REVISION")
@@ -222,7 +234,9 @@ def get_version():
 
 
 ind = AppIndicator3.Indicator.new(
-    "Grive Indicator", str(getIcon()), AppIndicator3.IndicatorCategory.APPLICATION_STATUS
+    "Grive Indicator",
+    str(getIcon()),
+    AppIndicator3.IndicatorCategory.APPLICATION_STATUS,
 )
 ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
 ind.set_attention_icon_full("indicator-messages-new", "Message attention icon")

@@ -22,6 +22,7 @@ import os
 import re
 import signal
 import subprocess
+import sys
 
 gi.require_version("AppIndicator3", "0.1")
 gi.require_version("Gtk", "3.0")
@@ -40,6 +41,8 @@ from grive_indicator.tools import (
     runConfigure,
     show_notify,
     get_version,
+    openLocal,
+    openRemote,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -56,7 +59,7 @@ class GriveIndicator(Gtk.Application):
         )
         if cliArgs.version:
             print(get_version())
-            exit()
+            sys.exit()
         self.folder = cliArgs.folder
         self.debug = cliArgs.debug
 
@@ -94,11 +97,11 @@ class GriveIndicator(Gtk.Application):
         self.syncNow_item.show()
 
         self.Remote_item = Gtk.MenuItem("Remote Google Drive")
-        self.Remote_item.connect("activate", self.openRemote)
+        self.Remote_item.connect("activate", openRemote)
         self.Remote_item.show()
 
         self.Local_item = Gtk.MenuItem("Local Folder")
-        self.Local_item.connect("activate", self.openLocal)
+        self.Local_item.connect("activate", openLocal)
         self.Local_item.show()
 
         self.Settings_item = Gtk.MenuItem("Preferences")
@@ -169,27 +172,14 @@ class GriveIndicator(Gtk.Application):
                         if grive_out_line.startswith("sync"):
                             show_notify(grive_out_line)
             logger.debug("Finished sync")
-            self.lastSync = re.split("T|\.", datetime.now().isoformat())[1]
+            self.lastSync = re.split(r"T|\.", datetime.now().isoformat())[1]
             self.lastSync_item.set_label("Last sync at " + self.lastSync)
-        except OSError:
-            logger.error("Missing grive in PATH")
-            pass
+        except OSError as e:
+            logger.error(f"Missing grive in PATH: {e}")
+            sys.exit(1)
         except Exception as e:
-            logger.error("Error occurred running grive. Skipping sync: %s" % e)
-            pass
-
-    def openRemote(self, widget):
-        Gtk.show_uri_on_window(None, "https://drive.google.com", Gdk.CURRENT_TIME)
-
-    def openLocal(self, widget):
-        localFolder = "file://{}".format(Config().getValue("folder"))
-        if os.getenv("SNAP") is not None:
-            logger.debug("Opening {} in snap: xdg-open".format(localFolder))
-            subprocess.call(["xdg-open", localFolder])
-        else:
-            logger.debug("Opening {}: show_uri_on_window".format(localFolder))
-            Gtk.show_uri_on_window(None, localFolder, Gdk.CURRENT_TIME)
-        # subprocess.call(["xdg-open", "file://{}".format(Config().getValue('folder'))])
+            logger.error(f"Error occurred running grive. Skipping sync: {e}")
+            # pass
 
     def settings(self, widget):
         settings.main(self.debug)
@@ -214,7 +204,7 @@ def main():
     parser.add_argument(
         "--version", action="store_true", help="Print the version and quit"
     )
-    # TODO: Add auth parameter
+
     args = parser.parse_args()
 
     app = GriveIndicator(args)
